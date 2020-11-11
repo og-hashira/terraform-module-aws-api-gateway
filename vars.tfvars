@@ -258,14 +258,14 @@ api_gateway_methods = [
   }
 ]
 
-# api_gateway_models = [
-#   {
-#     name         = "model1"
+api_gateway_models = [
+  {
+    name         = "asdfasdf"
 #     description  = "model1 desc"
 #     content_type = ""
 #     schema       = ""
-#   }
-# ]
+  }
+]
 
 # api_keys = [
 #   {

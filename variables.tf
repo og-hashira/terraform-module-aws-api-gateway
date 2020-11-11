@@ -74,12 +74,16 @@ variable "api_gateway_stages" {
 variable "api_gateway_models" {
   description = "AWS API Gateway models."
   default     = []
-  type = list(object({
-    name         = any # "The name of the model."
-    description  = any # "The description of the model."
-    content_type = any # "The content_type of the model."
-    schema       = any # "The schea of the model."
-  }))
+  # type = list(object({
+  #   name         = string (required) - The name of the model.
+  #   description  = string (optional) - The description of the model.
+  #   content_type = string (optional) - The content_type of the model. defaults to "application/json"
+  #   schema       = string (optional) - The schea of the model.
+  # }))
+  validation {
+    condition     = var.api_gateway_models != [] ? !can(index([for model in var.api_gateway_models : length(model.name) > 1], false)) : true
+    error_message = "The api_gateway_models variable is optional, but if specified, it must contain a string attribute called 'name' with length > 1."
+  }
 }
 
 variable "api_keys" {

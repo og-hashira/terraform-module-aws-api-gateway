@@ -22,7 +22,7 @@ locals {
   }
   api_gateway = merge(local.api_gateway_defaults, var.api_gateway)
 
-  # api_gateway_deployment
+  # api_gateway_deployment defaults
   api_gateway_deployment_defaults = {
     # stage_name      = string (required)
     stage_description = "This is a default description"
@@ -31,7 +31,7 @@ locals {
   }
   api_gateway_deployment = var.api_gateway_deployment != null ? merge(local.api_gateway_deployment_defaults, var.api_gateway_deployment) : null
 
-  # api_gateway_stages
+  # api_gateway_stages defaults
   api_gateway_stages = [for stage in var.api_gateway_stages :  {
       stage_name            = stage.stage_name
       stage_description     = can(length(stage.stage_description) > 1) ? stage.stage_description : "The description of the stage."
@@ -46,6 +46,15 @@ locals {
           format          = settings.format
         }
       ] : []
+    } 
+  ]
+
+  # api_gateway_models defaults
+  api_gateway_models = [for model in var.api_gateway_models :  {
+      name          = model.name
+      description   = can(length(model.description) > 1) ? model.description : "This is a default model description."
+      content_type  = can(length(model.content_type) > 1) ? model.content_type : "application/json"
+      schema        = can(length(model.schema) > 1) ? model.schema : "{\"type\":\"object\"}"
     } 
   ]
 
@@ -163,16 +172,16 @@ resource "aws_api_gateway_stage" "default" {
   tags = var.tags
 }
 
-# Module      : Api Gateway Model
-# Description : Terraform module to create Api Gateway model on AWS.
+# Resource    : Api Gateway Model
+# Description : Terraform resource to create Api Gateway model on AWS.
 resource "aws_api_gateway_model" "default" {
-  count = length(var.api_gateway_models)
+  count = length(local.api_gateway_models)
 
   rest_api_id  = aws_api_gateway_rest_api.default.*.id[0]
-  name         = element(var.api_gateway_models, count.index).name
-  description  = element(var.api_gateway_models, count.index).description
-  content_type = length(element(var.api_gateway_models, count.index).content_type) > 0 ? element(var.api_gateway_models, count.index).content_type : "application/json"
-  schema       = length(element(var.api_gateway_models, count.index).content_type) > 0 ? element(var.api_gateway_models, count.index).content_type : "{\"type\":\"object\"}"
+  name         = element(local.api_gateway_models, count.index).name
+  description  = element(local.api_gateway_models, count.index).description
+  content_type = element(local.api_gateway_models, count.index).content_type
+  schema       = element(local.api_gateway_models, count.index).schema 
 }
 
 # Module      : Api Gateway Authorizer
