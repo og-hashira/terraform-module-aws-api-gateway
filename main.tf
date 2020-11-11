@@ -21,15 +21,13 @@ locals {
   }
   api_gateway = merge(local.api_gateway_defaults, var.api_gateway)
 
-  
-
+  # api_gateway_deployment
   api_gateway_deployment_defaults = {
     # stage_name      = string (required)
     stage_description = "This is a default description"
     description       = "This is a default description"
     variables         = null
   }
-
   api_gateway_deployment = var.api_gateway_deployment != null ? merge(local.api_gateway_deployment_defaults, var.api_gateway_deployment): null
   
   ###########################
