@@ -29,8 +29,8 @@ locals {
     description       = "This is a default description"
     variables         = null
   }
-  api_gateway_deployment = var.api_gateway_deployment != null ? merge(local.api_gateway_deployment_defaults, var.api_gateway_deployment): null
-  
+  api_gateway_deployment = var.api_gateway_deployment != null ? merge(local.api_gateway_deployment_defaults, var.api_gateway_deployment) : null
+
 
   ###########################
   ## Resource path parsing ##
@@ -70,10 +70,10 @@ locals {
 # Module      : ACM Certificate
 # Description : Terraform module to create an AWS ACM Certificate for a custom domain
 module "acm_certificate" {
-  source         = "git::git@github.com:procter-gamble/terraform-module-aws-acm-certificate.git"
-  domain         = local.api_gateway.custom_domain
-  hosted_zone    = local.api_gateway.hosted_zone
-  tags           = var.tags
+  source      = "git::git@github.com:procter-gamble/terraform-module-aws-acm-certificate.git"
+  domain      = local.api_gateway.custom_domain
+  hosted_zone = local.api_gateway.hosted_zone
+  tags        = var.tags
 }
 
 # Resource    : Api Gateway 
@@ -81,7 +81,7 @@ module "acm_certificate" {
 resource "aws_api_gateway_rest_api" "default" {
   count = var.enabled ? 1 : 0
 
-  depends_on               = [module.acm_certificate]
+  depends_on = [module.acm_certificate]
 
   name                     = local.api_gateway.name
   description              = local.api_gateway.description
