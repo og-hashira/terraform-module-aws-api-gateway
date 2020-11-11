@@ -130,6 +130,27 @@ resource "aws_api_gateway_client_certificate" "default" {
   tags        = var.tags
 }
 
+# Resource    : Api Gateway Custom Domain Name
+# Description : Terraform resource to create Api Gateway Custom Domain on AWS.
+resource "aws_api_gateway_domain_name" "api_domain" {
+  count           = length(local.api_gateway.custom_domain) > 0 ? 1 : 0
+
+  certificate_arn = module.acm_certificate.arn[count.index]
+  domain_name     = local.api_gateway.custom_domain
+}
+
+# Resource    : Api Gateway Base Path Mapping
+# Description : Terraform resource to create Api Gateway base path mapping on AWS.
+resource "aws_api_gateway_base_path_mapping" "test" {
+  count       = length(local.api_gateway.custom_domain) > 0 ? 1 : 0
+  depends_on  = [aws_api_gateway_deployment.default]
+
+  api_id      = aws_api_gateway_rest_api.default.*.id[0]
+  # TODO:  Which stage?
+  # stage_name  = var.stage_name
+  domain_name = local.api_gateway.custom_domain
+}
+
 # Resource    : Api Gateway Deployment
 # Description : Terraform resource to create Api Gateway Deployment on AWS.
 resource "aws_api_gateway_deployment" "default" {
