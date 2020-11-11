@@ -1,4 +1,3 @@
-enabled = true
 tags    = { "bu" = "xyz" }
 
 api_gateway = {
@@ -15,31 +14,49 @@ api_gateway = {
 }
 
 # api_gateway_deployment = {
-#   stage_name        = "stage_name"
+#   stage_name        = "deploy"
 #   stage_description = "This is a default description"
 #   description       = "This is a default description"
 #   variables         = null
 # }
 
-api_gateway_stages = [
-  #   {
-  #     stage_name            = "stage_name2"
-  #     stage_description     = "The description of the stage."
-  #     stage_variables       = {}
-  #     cache_cluster_enabled = false
-  #     cache_cluster_size    = null
-  #     client_certificate_id = ""
-  #     documentation_version = ""
-  #     xray_tracing_enabled  = true
-  #     # log_enabled is the presence or absence of access_log_settings
-  #     access_log_settings = [
-  #       # {
-  #       #   destination_arn = "blah"
-  #       #   format          = "blah2"
-  #       # }
-  #     ]
-  #   }
-]
+# api_gateway_stages = [
+#     {
+#       stage_name            = "asd"
+#       stage_description     = "The description of the stage."
+#       stage_variables       = {}
+#       cache_cluster_enabled = true
+#       # cache_cluster_size    = null
+#       client_certificate_id = ""
+#       documentation_version = ""
+#       xray_tracing_enabled  = true
+#       access_log_settings = [
+#         # {
+#         #   destination_arn = "blah"
+#         #   format          = "blah2"
+#         # }
+#       ]
+#     },
+#     {
+#       stage_name            = "asdfa"
+#       stage_description     = "The description of the stage."
+#       stage_variables       = {}
+#       cache_cluster_enabled = false
+#       cache_cluster_size    = 0.5
+#       client_certificate_id = ""
+#       documentation_version = ""
+#       xray_tracing_enabled  = true
+#       access_log_settings = [
+#         {
+#           destination_arn = "blah"
+#           format          = "blah2"
+#         }
+#       ]
+#     },
+#     {
+#       stage_name = "hello"
+#       }
+# ]
 
 authorizer_definitions = [
   {

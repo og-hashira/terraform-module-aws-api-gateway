@@ -2,7 +2,7 @@
 # Description : Terraform Api Gateway module variables.
 variable "enabled" {
   type        = bool
-  default     = false
+  default     = true
   description = "Whether to create rest api."
 }
 
@@ -48,6 +48,29 @@ variable "api_gateway_deployment" {
   }
 }
 
+variable "api_gateway_stages" {
+  description = "AWS API Gateway stage."
+  default = []
+  # type = list(object({
+  #   stage_name            = string (required) - The name of the stage. If the specified stage already exists, it will be updated to point to the new deployment. If the stage does not exist, a new one will be created and point to this deployment.
+  #   stage_description     = string (optional) - The description of the stage.
+  #   stage_variables       = map (optional) - A map that defines variables for the stage.
+  #   cache_cluster_enabled = bool (optional) - Specifies whether a cache cluster is enabled for the stage.
+  #   cache_cluster_size    = number (optional) - The size of the cache cluster for the stage, if enabled. Allowed values include 0.5, 1.6, 6.1, 13.5, 28.4, 58.2, 118 and 237.
+  #   client_certificate_id = string (optional) - The identifier of a client certificate for the stage
+  #   documentation_version = string (optional) - The version of the associated API documentation.
+  #   xray_tracing_enabled  = bool (optional) - Whether to enable xray_tracing.
+  #   access_log_settings = list(object({ - optional block
+  #     destination_arn = string (required) - ARN of the log group to send the logs to. Automatically removes trailing :* if present.
+  #     format          = string (optional) - The formatting and values recorded in the logs.
+  #   }))
+  # }))
+  validation {
+    condition     = var.api_gateway_stages != [] ? !can(index([for stage in var.api_gateway_stages : length(stage.stage_name) > 1], false)) : true
+    error_message = "The api_gateway_stages variable is optional, but if specified, it must contain a string attribute called 'stage_name' with length > 1."
+  }
+}
+
 variable "api_gateway_models" {
   description = "AWS API Gateway models."
   default     = []
@@ -77,25 +100,6 @@ variable "vpc_links" {
     vpc_link_name        = any # "The name used to label and identify the VPC link."
     vpc_link_description = any # "The description of the VPC link."
     target_arns          = any # "The list of network load balancer arns in the VPC targeted by the VPC link. Currently AWS only supports 1 target."
-  }))
-}
-
-variable "api_gateway_stages" {
-  description = "AWS API Gateway stage."
-  type = list(object({
-    stage_name            = any # "The name of the stage. If the specified stage already exists, it will be updated to point to the new deployment. If the stage does not exist, a new one will be created and point to this deployment."
-    stage_description     = any # "The description of the stage."
-    stage_variables       = any # "A map that defines variables for the stage."
-    cache_cluster_enabled = any # "Specifies whether a cache cluster is enabled for the stage."
-    cache_cluster_size    = any # "The size of the cache cluster for the stage, if enabled. Allowed values include 0.5, 1.6, 6.1, 13.5, 28.4, 58.2, 118 and 237."
-    client_certificate_id = any # "The identifier of a client certificate for the stage"
-    documentation_version = any # "The version of the associated API documentation."
-    xray_tracing_enabled  = any # "Whether to enable xray_tracing."
-    # log_enabled is the presence or absence of access_log_settings
-    access_log_settings = list(object({
-      destination_arn = any # "ARN of the log group to send the logs to. Automatically removes trailing :* if present."
-      format          = any # "The formatting and values recorded in the logs."
-    }))
   }))
 }
 

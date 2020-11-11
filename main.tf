@@ -31,6 +31,23 @@ locals {
   }
   api_gateway_deployment = var.api_gateway_deployment != null ? merge(local.api_gateway_deployment_defaults, var.api_gateway_deployment) : null
 
+  # api_gateway_stages
+  api_gateway_stages = [for stage in var.api_gateway_stages :  {
+      stage_name            = stage.stage_name
+      stage_description     = can(length(stage.stage_description) > 1) ? stage.stage_description : "The description of the stage."
+      stage_variables       = can(length(stage.stage_variables) > 1) ? stage.stage_variables : {}
+      cache_cluster_enabled = can(stage.cache_cluster_enabled) ? stage.cache_cluster_enabled : false
+      cache_cluster_size    = can(stage.cache_cluster_size > 0) ? stage.cache_cluster_size : null
+      client_certificate_id = can(length(stage.client_certificate_id) > 1) ? stage.client_certificate_id : ""
+      documentation_version = can(length(stage.documentation_version) > 1) ? stage.documentation_version : null
+      xray_tracing_enabled  = can(stage.xray_tracing_enabled) ? stage.xray_tracing_enabled : false
+      access_log_settings = can(stage.access_log_settings) ? [for settings in stage.access_log_settings : {
+          destination_arn = settings.destination_arn
+          format          = settings.format
+        }
+      ] : []
+    } 
+  ]
 
   ###########################
   ## Resource path parsing ##
@@ -118,6 +135,34 @@ resource "aws_api_gateway_deployment" "default" {
   variables         = local.api_gateway_deployment.variables
 }
 
+# Resource    : Api Gateway Stage
+# Description : Terraform resource to create Api Gateway Stage on AWS
+resource "aws_api_gateway_stage" "default" {
+  count = local.api_gateway_deployment != null ? length(local.api_gateway_stages) : 0
+
+  rest_api_id   = aws_api_gateway_rest_api.default.*.id[0]
+  deployment_id = aws_api_gateway_deployment.default.*.id[0]
+
+  stage_name            = element(local.api_gateway_stages, count.index).stage_name
+  cache_cluster_enabled = element(local.api_gateway_stages, count.index).cache_cluster_enabled
+  cache_cluster_size    = element(local.api_gateway_stages, count.index).cache_cluster_size 
+  client_certificate_id = length(element(local.api_gateway_stages, count.index).client_certificate_id) > 0 ? element(local.api_gateway_stages, count.index).client_certificate_id : (local.api_gateway.api_gateway_client_cert_enabled ? aws_api_gateway_client_certificate.default.*.id[0] : "")
+  description           = element(local.api_gateway_stages, count.index).stage_description
+  documentation_version = element(local.api_gateway_stages, count.index).documentation_version
+  variables             = element(local.api_gateway_stages, count.index).stage_variables
+  xray_tracing_enabled  = element(local.api_gateway_stages, count.index).xray_tracing_enabled
+
+  dynamic "access_log_settings" {
+    for_each = element(local.api_gateway_stages, count.index).access_log_settings
+    content {
+      destination_arn = access_log_settings.value["destination_arn"]
+      format          = access_log_settings.value["format"]
+    }
+  }
+
+  tags = var.tags
+}
+
 # Module      : Api Gateway Model
 # Description : Terraform module to create Api Gateway model on AWS.
 resource "aws_api_gateway_model" "default" {
@@ -128,34 +173,6 @@ resource "aws_api_gateway_model" "default" {
   description  = element(var.api_gateway_models, count.index).description
   content_type = length(element(var.api_gateway_models, count.index).content_type) > 0 ? element(var.api_gateway_models, count.index).content_type : "application/json"
   schema       = length(element(var.api_gateway_models, count.index).content_type) > 0 ? element(var.api_gateway_models, count.index).content_type : "{\"type\":\"object\"}"
-}
-
-# Module      : Api Gateway Stage
-# Description : Terraform module to create Api Gateway Stage resource on AWS with logs
-resource "aws_api_gateway_stage" "with_log" {
-  count = var.api_gateway_deployment != null ? length(var.api_gateway_stages) : 0
-
-  rest_api_id   = aws_api_gateway_rest_api.default.*.id[0]
-  deployment_id = aws_api_gateway_deployment.default.*.id[0]
-
-  stage_name            = element(var.api_gateway_stages, count.index).stage_name
-  cache_cluster_enabled = element(var.api_gateway_stages, count.index).cache_cluster_enabled
-  cache_cluster_size    = element(var.api_gateway_stages, count.index).cache_cluster_size != null ? element(var.api_gateway_stages, count.index).cache_cluster_size : null
-  client_certificate_id = length(element(var.api_gateway_stages, count.index).client_certificate_id) > 0 ? element(var.api_gateway_stages, count.index).client_certificate_id : (var.api_gateway.api_gateway_client_cert_enabled ? aws_api_gateway_client_certificate.default.*.id[0] : "")
-  description           = length(element(var.api_gateway_stages, count.index).stage_description) > 0 ? element(var.api_gateway_stages, count.index).stage_description : ""
-  documentation_version = length(element(var.api_gateway_stages, count.index).documentation_version) > 0 ? element(var.api_gateway_stages, count.index).documentation_version : null
-  variables             = length(element(var.api_gateway_stages, count.index).stage_variables) > 0 ? element(var.api_gateway_stages, count.index).stage_variables : {}
-  xray_tracing_enabled  = element(var.api_gateway_stages, count.index).xray_tracing_enabled
-
-  dynamic "access_log_settings" {
-    for_each = element(var.api_gateway_stages, count.index).access_log_settings
-    content {
-      destination_arn = access_log_settings.value["destination_arn"]
-      format          = access_log_settings.value["format"]
-    }
-  }
-
-  tags = var.tags
 }
 
 # Module      : Api Gateway Authorizer
