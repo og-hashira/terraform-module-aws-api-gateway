@@ -9,13 +9,14 @@ locals {
 
   # api_gateway
   api_gateway_defaults = {
-    # name is required
+    # name                              = string (required)
     description                         = "This is a default description"
     binary_media_types                  = ["UTF-8-encoded"]
     minimum_compression_size            = -1
     api_key_source                      = "HEADER"
+    type                                = ["EDGE"]
     custom_domain                       = ""
-    hosted_zone_id                      = ""
+    hosted_zone                         = ""
     api_gateway_client_cert_enabled     = false
     api_gateway_client_cert_description = ""
   }
@@ -30,6 +31,7 @@ locals {
   }
   api_gateway_deployment = var.api_gateway_deployment != null ? merge(local.api_gateway_deployment_defaults, var.api_gateway_deployment): null
   
+
   ###########################
   ## Resource path parsing ##
   ###########################
@@ -69,8 +71,8 @@ locals {
 # Description : Terraform module to create an AWS ACM Certificate for a custom domain
 module "acm_certificate" {
   source         = "git::git@github.com:procter-gamble/terraform-module-aws-acm-certificate.git"
-  domain         = var.custom_domain
-  hosted_zone_id = var.hosted_zone_id
+  domain         = local.api_gateway.custom_domain
+  hosted_zone    = local.api_gateway.hosted_zone
   tags           = var.tags
 }
 
@@ -105,7 +107,7 @@ resource "aws_api_gateway_client_certificate" "default" {
 # Resource    : Api Gateway Deployment
 # Description : Terraform resource to create Api Gateway Deployment on AWS.
 resource "aws_api_gateway_deployment" "default" {
-  count = var.api_gateway_deployment != null ? length(var.api_gateway_deployment) : 0
+  count = local.api_gateway_deployment != null ? length(local.api_gateway_deployment) : 0
 
   depends_on = [aws_api_gateway_method.default, aws_api_gateway_integration.default]
 

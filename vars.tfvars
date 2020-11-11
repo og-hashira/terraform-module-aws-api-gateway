@@ -3,23 +3,20 @@ tags    = { "bu" = "xyz" }
 
 api_gateway = {
   name                                = "api-gateway"
-  description                         = "The test api-gateway"
-  binary_media_types                  = ["UTF-8-encoded"]
-  minimum_compression_size            = -1
-  api_key_source                      = "HEADER"
-  type                                = ["EDGE"]
+  # description                         = "The test api-gateway"
+  # binary_media_types                  = ["UTF-8-encoded"]
+  # minimum_compression_size            = -1
+  # api_key_source                      = "HEADER"
+  # type                                = ["EDGE"]
   custom_domain                       = "api.bitlocker.np.pgcloud.com"
-  hosted_zone_id                      = "Determine via ssm parameter"
-  api_gateway_client_cert_enabled     = false
-  api_gateway_client_cert_description = ""
+  hosted_zone                         = "np.pgcloud.com"
+  # api_gateway_client_cert_enabled     = false
+  # api_gateway_client_cert_description = ""
 }
 
-api_gateway_deployment = {
-  stage_name        = "stage_name"
-  stage_description = "stage desc"
-  description       = "deployment desc"
-  variables         = null
-}
+# api_gateway_deployment = {
+#   stage_name        = "stage_name"
+# }
 
 api_gateway_stages = [
 #   {

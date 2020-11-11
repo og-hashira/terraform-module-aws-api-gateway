@@ -6,30 +6,6 @@ variable "enabled" {
   description = "Whether to create rest api."
 }
 
-variable "custom_domain" {
-  type        = string
-  default     = ""
-  description = "Custom API Gateway Domain name."
-}
-
-variable "hosted_zone_id" {
-  type        = string
-  default     = ""
-  description = "ID of the Route53 hosted zone."
-}
-
-variable "tags" {
-  type        = map
-  default     = {}
-  description = "Additional tags (e.g. map(`BusinessUnit`,`XYZ`)."
-}
-
-variable "enabled" {
-  type        = bool
-  default     = false
-  description = "Whether to create rest api."
-}
-
 variable "tags" {
   type        = map
   default     = {}
@@ -47,7 +23,7 @@ variable "api_gateway" {
   #   api_key_source                      = bool (optional) - The source of the API key for requests. Valid values are HEADER (default) and AUTHORIZER.
   #   type                                = list(string) (optional) - [\"EDGE\""] or [\"REGIONAL\"] or [\"PRIVATE\"]
   #   custom_domain                       = string (optional) - Custom API Gateway Domain name.
-  #   hosted_zone_id                      = string (optional) - ID of the Route53 hosted zone if specifying a custom_domain.
+  #   hosted_zone                         = string (optional) - name of the Route53 hosted zone if specifying a custom_domain.
   #   api_gateway_client_cert_enabled     = bool (optional) - Whether to create client certificate.
   #   api_gateway_client_cert_description = string (optional) - The description of the client certificate.
   # })
