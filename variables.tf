@@ -50,7 +50,7 @@ variable "api_gateway_deployment" {
 
 variable "api_gateway_stages" {
   description = "AWS API Gateway stage."
-  default = []
+  default     = []
   # type = list(object({
   #   stage_name            = string (required) - The name of the stage. If the specified stage already exists, it will be updated to point to the new deployment. If the stage does not exist, a new one will be created and point to this deployment.
   #   stage_description     = string (optional) - The description of the stage.
@@ -66,7 +66,7 @@ variable "api_gateway_stages" {
   #   }))
   # }))
   validation {
-    condition     = var.api_gateway_stages != [] ? !can(index([for stage in var.api_gateway_stages : length(stage.stage_name) > 1], false)) : true
+    condition     = var.api_gateway_stages != [] ? ! can(index([for stage in var.api_gateway_stages : length(stage.stage_name) > 1], false)) : true
     error_message = "The api_gateway_stages variable is optional, but if specified, it must contain a string attribute called 'stage_name' with length > 1."
   }
 }
@@ -81,7 +81,7 @@ variable "api_gateway_models" {
   #   schema       = string (optional) - The schea of the model.
   # }))
   validation {
-    condition     = var.api_gateway_models != [] ? !can(index([for model in var.api_gateway_models : length(model.name) > 1], false)) : true
+    condition     = var.api_gateway_models != [] ? ! can(index([for model in var.api_gateway_models : length(model.name) > 1], false)) : true
     error_message = "The api_gateway_models variable is optional, but if specified, it must contain a string attribute called 'name' with length > 1."
   }
 }

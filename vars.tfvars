@@ -1,4 +1,4 @@
-tags    = { "bu" = "xyz" }
+tags = { "bu" = "xyz" }
 
 api_gateway = {
   name = "api-gateway"
@@ -260,10 +260,10 @@ api_gateway_methods = [
 
 api_gateway_models = [
   {
-    name         = "asdfasdf"
-#     description  = "model1 desc"
-#     content_type = ""
-#     schema       = ""
+    name = "asdfasdf"
+    #     description  = "model1 desc"
+    #     content_type = ""
+    #     schema       = ""
   }
 ]
 

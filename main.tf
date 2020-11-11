@@ -10,15 +10,16 @@ locals {
   # api_gateway
   api_gateway_defaults = {
     # name                              = string (required)
-    description                         = "This is a default description"
-    binary_media_types                  = ["UTF-8-encoded"]
-    minimum_compression_size            = -1
     api_key_source                      = "HEADER"
-    type                                = ["EDGE"]
-    custom_domain                       = ""
-    hosted_zone                         = ""
-    api_gateway_client_cert_enabled     = false
-    api_gateway_client_cert_description = ""
+    binary_media_types                  = null
+    description                         = "Managed by the P&G AWS API Gateway Terraform Module https://github.com/procter-gamble/terraform-module-aws-api-gateway.git"
+    endpoint_configuration              = null
+    minimum_compression_size            = null
+    policy                              = null
+    custom_domain                       = null
+    hosted_zone                         = null
+    api_gateway_client_cert_enabled     = null
+    api_gateway_client_cert_description = "Managed by the P&G AWS API Gateway Terraform Module https://github.com/procter-gamble/terraform-module-aws-api-gateway.git"
   }
   api_gateway = merge(local.api_gateway_defaults, var.api_gateway)
 
@@ -32,31 +33,29 @@ locals {
   api_gateway_deployment = var.api_gateway_deployment != null ? merge(local.api_gateway_deployment_defaults, var.api_gateway_deployment) : null
 
   # api_gateway_stages defaults
-  api_gateway_stages = [for stage in var.api_gateway_stages :  {
-      stage_name            = stage.stage_name
-      stage_description     = can(length(stage.stage_description) > 1) ? stage.stage_description : "The description of the stage."
-      stage_variables       = can(length(stage.stage_variables) > 1) ? stage.stage_variables : {}
-      cache_cluster_enabled = can(stage.cache_cluster_enabled) ? stage.cache_cluster_enabled : false
-      cache_cluster_size    = can(stage.cache_cluster_size > 0) ? stage.cache_cluster_size : null
-      client_certificate_id = can(length(stage.client_certificate_id) > 1) ? stage.client_certificate_id : ""
-      documentation_version = can(length(stage.documentation_version) > 1) ? stage.documentation_version : null
-      xray_tracing_enabled  = can(stage.xray_tracing_enabled) ? stage.xray_tracing_enabled : false
-      access_log_settings = can(stage.access_log_settings) ? [for settings in stage.access_log_settings : {
-          destination_arn = settings.destination_arn
-          format          = settings.format
-        }
-      ] : []
-    } 
-  ]
+  api_gateway_stage_defaults = {
+    # stage_name          = string
+    access_log_settings   = null
+    cache_cluster_enabled = null
+    cache_cluster_size    = null
+    client_certificate_id = null
+    documentation_version = null
+    stage_description     = "Managed by the P&G AWS API Gateway Terraform Module https://github.com/procter-gamble/terraform-module-aws-api-gateway.git"
+    stage_variables       = null
+    xray_tracing_enabled  = null
+  }
+  api_gateway_stages = [for stage in var.api_gateway_stages : merge(local.api_gateway_stage_defaults, stage)]
 
   # api_gateway_models defaults
-  api_gateway_models = [for model in var.api_gateway_models :  {
-      name          = model.name
-      description   = can(length(model.description) > 1) ? model.description : "This is a default model description."
-      content_type  = can(length(model.content_type) > 1) ? model.content_type : "application/json"
-      schema        = can(length(model.schema) > 1) ? model.schema : "{\"type\":\"object\"}"
-    } 
-  ]
+  api_gateway_model_defaults = {
+    # name         = string (required)
+    description  = "Managed by the P&G AWS API Gateway Terraform Module https://github.com/procter-gamble/terraform-module-aws-api-gateway.git"
+    content_type = "application/json"
+    schema       = "{\"type\":\"object\"}"
+  }
+  api_gateway_models = [for model in var.api_gateway_models : merge(local.api_gateway_model_defaults, model)]
+
+
 
   ###########################
   ## Resource path parsing ##
@@ -93,30 +92,25 @@ locals {
   authorizers = zipmap([for auth in var.authorizer_definitions : auth.authorizer_name], aws_api_gateway_authorizer.default[*]["id"])
 }
 
-# Module      : ACM Certificate
-# Description : Terraform module to create an AWS ACM Certificate for a custom domain
-module "acm_certificate" {
-  source      = "git::git@github.com:procter-gamble/terraform-module-aws-acm-certificate.git"
-  domain      = local.api_gateway.custom_domain
-  hosted_zone = local.api_gateway.hosted_zone
-  tags        = var.tags
-}
-
-# Resource    : Api Gateway 
-# Description : Terraform resource to create Api Gateway on AWS.
-resource "aws_api_gateway_rest_api" "default" {
+# Resource    : API Gateway 
+# Description : Terraform resource to create an API Gateway REST API on AWS.
+resource aws_api_gateway_rest_api default {
   count = var.enabled ? 1 : 0
 
-  depends_on = [module.acm_certificate]
-
-  name                     = local.api_gateway.name
-  description              = local.api_gateway.description
-  binary_media_types       = local.api_gateway.binary_media_types
-  minimum_compression_size = local.api_gateway.minimum_compression_size
   api_key_source           = local.api_gateway.api_key_source
+  binary_media_types       = local.api_gateway.binary_media_types
+  description              = local.api_gateway.description
+  endpoint_configuration   = local.api_gateway.endpoint_configuration
+  minimum_compression_size = local.api_gateway.minimum_compression_size
+  name                     = local.api_gateway.name
+  policy                   = local.api_gateway.policy
 
-  endpoint_configuration {
-    types = local.api_gateway.type
+  dynamic endpoint_configuration {
+    for_each = local.api_gateway.endpoint_configuration == null ? [] : [local.api_gateway.endpoint_configuration]
+    content {
+      types            = endpoint_configuration.value.types
+      vpc_endpoint_ids = lookup(endpoint_configuration.value, "vpc_endpoint_ids", null)
+    }
   }
 
   tags = var.tags
@@ -124,32 +118,32 @@ resource "aws_api_gateway_rest_api" "default" {
 
 # Resource    : Api Gateway Client Certificate
 # Description : Terraform resource to create Api Gateway Client Certificate on AWS.
-resource "aws_api_gateway_client_certificate" "default" {
+resource aws_api_gateway_client_certificate default {
   count       = local.api_gateway.api_gateway_client_cert_enabled ? 1 : 0
   description = local.api_gateway.api_gateway_client_cert_description
   tags        = var.tags
 }
 
-# Resource    : Api Gateway Custom Domain Name
-# Description : Terraform resource to create Api Gateway Custom Domain on AWS.
-resource "aws_api_gateway_domain_name" "api_domain" {
-  count           = length(local.api_gateway.custom_domain) > 0 ? 1 : 0
+# # Resource    : Api Gateway Custom Domain Name
+# # Description : Terraform resource to create Api Gateway Custom Domain on AWS.
+# resource "aws_api_gateway_domain_name" "api_domain" {
+#   count = length(local.api_gateway.custom_domain) > 0 ? 1 : 0
 
-  certificate_arn = module.acm_certificate.arn[count.index]
-  domain_name     = local.api_gateway.custom_domain
-}
+#   certificate_arn = module.acm_certificate.arn[count.index]
+#   domain_name     = local.api_gateway.custom_domain
+# }
 
-# Resource    : Api Gateway Base Path Mapping
-# Description : Terraform resource to create Api Gateway base path mapping on AWS.
-resource "aws_api_gateway_base_path_mapping" "test" {
-  count       = length(local.api_gateway.custom_domain) > 0 ? 1 : 0
-  depends_on  = [aws_api_gateway_deployment.default]
+# # Resource    : Api Gateway Base Path Mapping
+# # Description : Terraform resource to create Api Gateway base path mapping on AWS.
+# resource "aws_api_gateway_base_path_mapping" "test" {
+#   count      = length(local.api_gateway.custom_domain) > 0 ? 1 : 0
+#   depends_on = [aws_api_gateway_deployment.default]
 
-  api_id      = aws_api_gateway_rest_api.default.*.id[0]
-  # TODO:  Which stage?
-  # stage_name  = var.stage_name
-  domain_name = local.api_gateway.custom_domain
-}
+#   api_id = aws_api_gateway_rest_api.default.*.id[0]
+#   # TODO:  Which stage?
+#   # stage_name  = var.stage_name
+#   domain_name = local.api_gateway.custom_domain
+# }
 
 # Resource    : Api Gateway Deployment
 # Description : Terraform resource to create Api Gateway Deployment on AWS.
@@ -175,7 +169,7 @@ resource "aws_api_gateway_stage" "default" {
 
   stage_name            = element(local.api_gateway_stages, count.index).stage_name
   cache_cluster_enabled = element(local.api_gateway_stages, count.index).cache_cluster_enabled
-  cache_cluster_size    = element(local.api_gateway_stages, count.index).cache_cluster_size 
+  cache_cluster_size    = element(local.api_gateway_stages, count.index).cache_cluster_size
   client_certificate_id = length(element(local.api_gateway_stages, count.index).client_certificate_id) > 0 ? element(local.api_gateway_stages, count.index).client_certificate_id : (local.api_gateway.api_gateway_client_cert_enabled ? aws_api_gateway_client_certificate.default.*.id[0] : "")
   description           = element(local.api_gateway_stages, count.index).stage_description
   documentation_version = element(local.api_gateway_stages, count.index).documentation_version
@@ -202,7 +196,7 @@ resource "aws_api_gateway_model" "default" {
   name         = element(local.api_gateway_models, count.index).name
   description  = element(local.api_gateway_models, count.index).description
   content_type = element(local.api_gateway_models, count.index).content_type
-  schema       = element(local.api_gateway_models, count.index).schema 
+  schema       = element(local.api_gateway_models, count.index).schema
 }
 
 # Module      : Api Gateway Authorizer
