@@ -24,8 +24,6 @@ variable "tags" {
   description = "Additional tags (e.g. map(`BusinessUnit`,`XYZ`)."
 }
 
-# Module      : Api Gateway
-# Description : Terraform Api Gateway module variables.
 variable "enabled" {
   type        = bool
   default     = false
