@@ -24,21 +24,54 @@ variable "tags" {
   description = "Additional tags (e.g. map(`BusinessUnit`,`XYZ`)."
 }
 
+# Module      : Api Gateway
+# Description : Terraform Api Gateway module variables.
+variable "enabled" {
+  type        = bool
+  default     = false
+  description = "Whether to create rest api."
+}
+
+variable "tags" {
+  type        = map
+  default     = {}
+  description = "Additional tags (e.g. map(`BusinessUnit`,`XYZ`)."
+}
+
 variable "api_gateway" {
   description = "AWS API Gateway Settings."
+  default     = null
+  # type = object({
+  #   name                                = string (required) - The name of the API Gateway.
+  #   description                         = string (optional) - The description of the REST API
+  #   binary_media_types                  = list(string) (optional) - The list of binary media types supported by the RestApi. By default, the RestApi supports only UTF-8-encoded text payloads.
+  #   minimum_compression_size            = number (optional) - Minimum response size to compress for the REST API. Integer between -1 and 10485760 (10MB). Setting a value greater than -1 will enable compression, -1 disables compression (default).
+  #   api_key_source                      = bool (optional) - The source of the API key for requests. Valid values are HEADER (default) and AUTHORIZER.
+  #   type                                = list(string) (optional) - [\"EDGE\""] or [\"REGIONAL\"] or [\"PRIVATE\"]
+  #   custom_domain                       = string (optional) - Custom API Gateway Domain name.
+  #   hosted_zone_id                      = string (optional) - ID of the Route53 hosted zone if specifying a custom_domain.
+  #   api_gateway_client_cert_enabled     = bool (optional) - Whether to create client certificate.
+  #   api_gateway_client_cert_description = string (optional) - The description of the client certificate.
+  # })
+  validation {
+    condition     = var.api_gateway != null && length(var.api_gateway.name) > 1
+    error_message = "The api_gateway variable is required and must contain a string attribute called 'name' with length > 1."
+  }
+}
 
-  type = object({
-    name                                = any # "The name of the API Gateway."
-    description                         = any # "The description of the REST API "
-    binary_media_types                  = any # "The list of binary media types supported by the RestApi. By default, the RestApi supports only UTF-8-encoded text payloads."
-    minimum_compression_size            = any # "Minimum response size to compress for the REST API. Integer between -1 and 10485760 (10MB). Setting a value greater than -1 will enable compression, -1 disables compression (default)."
-    api_key_source                      = any # "The source of the API key for requests. Valid values are HEADER (default) and AUTHORIZER."
-    type                                = any # "[\"EDGE\""] or [\"REGIONAL\"] or [\"PRIVATE\"]"
-    custom_domain                       = any # "Custom API Gateway Domain name."
-    hosted_zone_id                      = any # "ID of the Route53 hosted zone if specifying a custom_domain."
-    api_gateway_client_cert_enabled     = any # "Whether to create client certificate."
-    api_gateway_client_cert_description = any # "The description of the client certificate."
-  })
+variable "api_gateway_deployment" {
+  description = "AWS API Gateway deployment."
+  default     = null
+  # type = object({
+  #   stage_name        = string (required) - The name of the model.
+  #   stage_description = string (optional) - The description of the stage.
+  #   description       = string (optional) - The description of the model.
+  #   variables         = map (Optional) - A map that defines variables for the stage.
+  # })
+  validation {
+    condition     = var.api_gateway_deployment != null ? length(var.api_gateway_deployment.stage_name) > 1 : true
+    error_message = "The api_gateway_deployment variable is optional, but if specified, it must contain a string attribute called 'stage_name' with length > 1."
+  }
 }
 
 variable "api_gateway_models" {
@@ -71,18 +104,6 @@ variable "vpc_links" {
     vpc_link_description = any # "The description of the VPC link."
     target_arns          = any # "The list of network load balancer arns in the VPC targeted by the VPC link. Currently AWS only supports 1 target."
   }))
-}
-
-# Deployment enabled means this is defined.
-variable "api_gateway_deployment" {
-  description = "AWS API Gateway deployment."
-  default     = null
-  type = object({
-    stage_name        = any # "The name of the model."
-    stage_description = any # "The description of the stage."
-    description       = any # "The description of the model."
-    variables         = any # "A map that defines variables for the stage."
-  })
 }
 
 variable "api_gateway_stages" {

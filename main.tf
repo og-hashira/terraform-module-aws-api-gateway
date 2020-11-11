@@ -3,6 +3,38 @@ provider "aws" {
 }
 
 locals {
+  ##################
+  ## Set defaults ##
+  ##################
+
+  # api_gateway
+  api_gateway_defaults = {
+    # name is required
+    description                         = "This is a default description"
+    binary_media_types                  = ["UTF-8-encoded"]
+    minimum_compression_size            = -1
+    api_key_source                      = "HEADER"
+    custom_domain                       = ""
+    hosted_zone_id                      = ""
+    api_gateway_client_cert_enabled     = false
+    api_gateway_client_cert_description = ""
+  }
+  api_gateway = merge(local.api_gateway_defaults, var.api_gateway)
+
+  
+
+  api_gateway_deployment_defaults = {
+    # stage_name      = string (required)
+    stage_description = "This is a default description"
+    description       = "This is a default description"
+    variables         = null
+  }
+
+  api_gateway_deployment = var.api_gateway_deployment != null ? merge(local.api_gateway_deployment_defaults, var.api_gateway_deployment): null
+  
+  ###########################
+  ## Resource path parsing ##
+  ###########################
   paths = [for method in var.api_gateway_methods : method.resource_path]
 
   paths_as_segments = [for path in local.paths : split("/", path)]
@@ -29,11 +61,14 @@ locals {
     )
   )
 
+  ########################
+  ## Authorizor mapping ##
+  ########################
   authorizers = zipmap([for auth in var.authorizer_definitions : auth.authorizer_name], aws_api_gateway_authorizer.default[*]["id"])
 }
 
-# Module      : Certificate
-# Description : AWS ACM Certificate for custom domain
+# Module      : ACM Certificate
+# Description : Terraform module to create an AWS ACM Certificate for a custom domain
 module "acm_certificate" {
   source         = "git::git@github.com:procter-gamble/terraform-module-aws-acm-certificate.git"
   domain         = var.custom_domain
@@ -41,30 +76,46 @@ module "acm_certificate" {
   tags           = var.tags
 }
 
+# Resource    : Api Gateway 
+# Description : Terraform resource to create Api Gateway on AWS.
 resource "aws_api_gateway_rest_api" "default" {
   count = var.enabled ? 1 : 0
 
   depends_on               = [module.acm_certificate]
 
-  name                     = var.api_gateway.name
-  description              = var.api_gateway.description
-  binary_media_types       = var.api_gateway.binary_media_types
-  minimum_compression_size = var.api_gateway.minimum_compression_size
-  api_key_source           = var.api_gateway.api_key_source
+  name                     = local.api_gateway.name
+  description              = local.api_gateway.description
+  binary_media_types       = local.api_gateway.binary_media_types
+  minimum_compression_size = local.api_gateway.minimum_compression_size
+  api_key_source           = local.api_gateway.api_key_source
 
   endpoint_configuration {
-    types = var.api_gateway.type
+    types = local.api_gateway.type
   }
 
   tags = var.tags
 }
 
-# Module      : Api Gateway Client Certificate
-# Description : Terraform module to create Api Gateway Client Certificate resource on AWS.
+# Resource    : Api Gateway Client Certificate
+# Description : Terraform resource to create Api Gateway Client Certificate on AWS.
 resource "aws_api_gateway_client_certificate" "default" {
-  count       = var.api_gateway.api_gateway_client_cert_enabled ? 1 : 0
-  description = var.api_gateway.api_gateway_client_cert_description
+  count       = local.api_gateway.api_gateway_client_cert_enabled ? 1 : 0
+  description = local.api_gateway.api_gateway_client_cert_description
   tags        = var.tags
+}
+
+# Resource    : Api Gateway Deployment
+# Description : Terraform resource to create Api Gateway Deployment on AWS.
+resource "aws_api_gateway_deployment" "default" {
+  count = var.api_gateway_deployment != null ? length(var.api_gateway_deployment) : 0
+
+  depends_on = [aws_api_gateway_method.default, aws_api_gateway_integration.default]
+
+  rest_api_id       = aws_api_gateway_rest_api.default.*.id[0]
+  stage_name        = local.api_gateway_deployment.stage_name
+  description       = local.api_gateway_deployment.description
+  stage_description = local.api_gateway_deployment.stage_description
+  variables         = local.api_gateway_deployment.variables
 }
 
 # Module      : Api Gateway Model
@@ -77,20 +128,6 @@ resource "aws_api_gateway_model" "default" {
   description  = element(var.api_gateway_models, count.index).description
   content_type = length(element(var.api_gateway_models, count.index).content_type) > 0 ? element(var.api_gateway_models, count.index).content_type : "application/json"
   schema       = length(element(var.api_gateway_models, count.index).content_type) > 0 ? element(var.api_gateway_models, count.index).content_type : "{\"type\":\"object\"}"
-}
-
-# Module      : Api Gateway Deployment
-# Description : Terraform module to create Api Gateway Deployment resource on AWS.
-resource "aws_api_gateway_deployment" "default" {
-  count = var.api_gateway_deployment != null ? length(var.api_gateway_deployment) : 0
-
-  depends_on = [aws_api_gateway_method.default, aws_api_gateway_integration.default]
-
-  rest_api_id       = aws_api_gateway_rest_api.default.*.id[0]
-  stage_name        = var.api_gateway_deployment.stage_name
-  description       = var.api_gateway_deployment.description
-  stage_description = var.api_gateway_deployment.stage_description
-  variables         = var.api_gateway_deployment.variables
 }
 
 # Module      : Api Gateway Stage
