@@ -26,6 +26,7 @@ variable "tags" {
 
 variable "api_gateway" {
   description = "AWS API Gateway Settings."
+
   type = object({
     name                                = any # "The name of the API Gateway."
     description                         = any # "The description of the REST API "
