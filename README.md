@@ -20,7 +20,9 @@ This module has a dependency:
 
 - [Terraform 0.13](https://learn.hashicorp.com/terraform/getting-started/install.html)
 
+## Limitations
 
+Currently this module only supports resource paths nested 5 levels deep, e.g. <endpoint>/one/two/three/four/five.  Adding additional levels is trivial if the use case ever arises.  Stopping at 5 for now to keep the code more concise.
 
 <!-- ## Examples
 
