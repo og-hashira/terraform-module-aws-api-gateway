@@ -6,20 +6,21 @@ locals {
   ##################
   ## Set defaults ##
   ##################
+  description = "Managed by the P&G AWS API Gateway Terraform Module https://github.com/procter-gamble/terraform-module-aws-api-gateway.git"
 
   # api_gateway
   api_gateway_defaults = {
     # name                              = string (required)
     api_key_source                      = "HEADER"
     binary_media_types                  = null
-    description                         = "Managed by the P&G AWS API Gateway Terraform Module https://github.com/procter-gamble/terraform-module-aws-api-gateway.git"
+    description                         = local.description
     endpoint_configuration              = null
     minimum_compression_size            = null
     policy                              = null
     custom_domain                       = null
     hosted_zone                         = null
     api_gateway_client_cert_enabled     = null
-    api_gateway_client_cert_description = "Managed by the P&G AWS API Gateway Terraform Module https://github.com/procter-gamble/terraform-module-aws-api-gateway.git"
+    api_gateway_client_cert_description = local.description
   }
   api_gateway = merge(local.api_gateway_defaults, var.api_gateway)
 
@@ -40,7 +41,7 @@ locals {
     cache_cluster_size    = null
     client_certificate_id = null
     documentation_version = null
-    stage_description     = "Managed by the P&G AWS API Gateway Terraform Module https://github.com/procter-gamble/terraform-module-aws-api-gateway.git"
+    stage_description     = local.description
     stage_variables       = null
     xray_tracing_enabled  = null
   }
@@ -49,7 +50,7 @@ locals {
   # api_gateway_models defaults
   api_gateway_model_defaults = {
     # name         = string (required)
-    description  = "Managed by the P&G AWS API Gateway Terraform Module https://github.com/procter-gamble/terraform-module-aws-api-gateway.git"
+    description  = local.description
     content_type = "application/json"
     schema       = "{\"type\":\"object\"}"
   }
