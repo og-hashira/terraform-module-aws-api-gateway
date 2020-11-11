@@ -6,30 +6,100 @@ variable "enabled" {
   description = "Whether to create rest api."
 }
 
-variable "tags" {
-  type        = map
+variable tags {
+  type        = map(string)
   default     = {}
-  description = "Additional tags (e.g. map(`BusinessUnit`,`XYZ`)."
+  description = "Tags to add to all resources."
+
+  validation {
+    condition     = can([for key, value in var.tags : length(key) <= 128 ])
+    error_message = "AWS Tag Keys must be 128 characters or less in length."
+  }
+
+  validation {
+    condition     = can([for key, value in var.tags : length(value) <= 256 ])
+    error_message = "AWS Tag Values must be 256 characters or less in length."
+  }
+
+  validation {
+    condition     = can([ for key, value in var.tags : regex("^[\\w\\d\\s\\+\\-\\=\\.\\_\\:\\/\\@]+$", "${key} ${value}") ])
+    error_message = "AWS Tag Keys and Values must match RegExp ^[\\w\\d\\s\\+\\-\\=\\.\\_\\:\\/\\@]+$ ."
+  }
 }
 
-variable "api_gateway" {
+variable api_gateway {
   description = "AWS API Gateway Settings."
-  default     = null
-  # type = object({
-  #   name                                = string (required) - The name of the API Gateway.
-  #   description                         = string (optional) - The description of the REST API
-  #   binary_media_types                  = list(string) (optional) - The list of binary media types supported by the RestApi. By default, the RestApi supports only UTF-8-encoded text payloads.
-  #   minimum_compression_size            = number (optional) - Minimum response size to compress for the REST API. Integer between -1 and 10485760 (10MB). Setting a value greater than -1 will enable compression, -1 disables compression (default).
-  #   api_key_source                      = bool (optional) - The source of the API key for requests. Valid values are HEADER (default) and AUTHORIZER.
-  #   type                                = list(string) (optional) - [\"EDGE\""] or [\"REGIONAL\"] or [\"PRIVATE\"]
-  #   custom_domain                       = string (optional) - Custom API Gateway Domain name.
-  #   hosted_zone                         = string (optional) - name of the Route53 hosted zone if specifying a custom_domain.
-  #   api_gateway_client_cert_enabled     = bool (optional) - Whether to create client certificate.
-  #   api_gateway_client_cert_description = string (optional) - The description of the client certificate.
-  # })
+  type        = any
+  /**
+  type = object({
+    api_key_source                      = any # "The source of the API key for requests. Valid values are HEADER (default) and AUTHORIZER."
+    binary_media_types                  = set(string) # "The list of binary media types supported by the RestApi. By default, the RestApi supports only UTF-8-encoded text payloads."
+    description                         = string # "The description of the REST API "
+    endpoint_configuration              = object({
+      types = set(string) This resource currently only supports managing a single value. Valid values: EDGE, REGIONAL or PRIVATE
+      vpc_endpoint_ids = set(string) (Optional) A list of VPC Endpoint Ids.
+    })
+    minimum_compression_size            = any # "Minimum response size to compress for the REST API. Integer between -1 and 10485760 (10MB). Setting a value greater than -1 will enable compression, -1 disables compression (default)."
+    name                                = string # "The name of the API Gateway."
+    policy                              = string
+  })
+  */
+
+  # name
   validation {
-    condition     = var.api_gateway != null && length(var.api_gateway.name) > 1
-    error_message = "The api_gateway variable is required and must contain a string attribute called 'name' with length > 1."
+    condition     = can(tostring(var.api_gateway.name))
+    error_message = "Attribute name of api_gateway must be a string."
+  }
+
+  # description
+  validation {
+    condition     = can(tostring(lookup(var.api_gateway, "description", "")))
+    error_message = "Optional attribute description of api_gateway must be a string if specified."
+  }
+
+  # binary_media_types
+  validation {
+    condition = can(toset([
+      for binary_media_type in lookup(var.api_gateway, "binary_media_types", []) : regex("^[\\-\\w\\.]+/[\\-\\w\\.]+$", binary_media_type)
+    ]))
+    error_message = "Optional attribute binary_media_types of api_gateway must be a set of valid MIME types if specified."
+  }
+
+  # minimum_compression_size
+  validation {
+    condition     = tonumber(lookup(var.api_gateway, "minimum_compression_size", 0)) >= 0 && tonumber(lookup(var.api_gateway, "minimum_compression_size", 0)) <= 10485760
+    error_message = "Optional attribute minimum_compression_size of api_gateway must be non-negative between 0 and 10485760 (inclusive) if specified."
+  }
+
+  # api_key_source
+  validation {
+    condition     = contains(["HEADER", "AUTHORIZER"], tostring(lookup(var.api_gateway, "api_key_source", "HEADER")))
+    error_message = "Optional attribute api_key_source of api_gateway must be one of:\n\t- HEADER\n\t- AUTHORIZER\n if specified."
+  }
+
+  # endpoint_configuration
+  validation {
+    condition     = can(var.api_gateway.endpoint_configuration) ? length(try(toset(var.api_gateway.endpoint_configuration.types), [])) == 1 : true
+    error_message = "Optional attribute endpoint_configuration of api_gateway must be an object with a 'types' attribute of type set(string) and length 1."
+  }
+
+  # endpoint_configuration.types
+  validation {
+    condition     = can(var.api_gateway.endpoint_configuration.types[0]) ? contains(["EDGE", "REGIONAL", "PRIVATE"], var.api_gateway.endpoint_configuration.types[0]) : true
+    error_message = "Attribute types of api_gateway.endpoint_configuration must be of type set(string) and only include the following values:\n\t- EDGE\n\t- REGIONAL\n\t- PRIVATE\n."
+  }
+
+  # endpoint_configuration.vpc_endpoint_ids
+  validation {
+    condition = (
+      try(var.api_gateway.endpoint_configuration.types[0], "") == "PRIVATE" ?
+      can([
+        for vpc_endpoint_id in var.api_gateway.endpoint_configuration.vpc_endpoint_ids :
+        regex("^vpce-[a-z0-9]+$", vpc_endpoint_id)
+      ]) :
+      length(try(var.api_gateway.endpoint_configuration.vpc_endpoint_ids, [])) == 0
+    )
+    error_message = "Attribute types of api_gateway.endpoint_configuration.vpc_endpoint_ids must: \n\t- only be specified when api_gateway.endpoint_configuration.types is PRIVATE\n\t- be a set of VPC Endpoint IDs\n."
   }
 }
 
