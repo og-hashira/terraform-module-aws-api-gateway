@@ -7,56 +7,56 @@ api_gateway = {
   # minimum_compression_size            = -1
   # api_key_source                      = "HEADER"
   # type                                = ["EDGE"]
-  custom_domain = "api.bitlocker.np.pgcloud.com"
-  hosted_zone   = "np.pgcloud.com"
+  # custom_domain = "api.bitlocker.np.pgcloud.com"
+  # hosted_zone   = "np.pgcloud.com"
   # api_gateway_client_cert_enabled     = false
   # api_gateway_client_cert_description = ""
 }
 
 # api_gateway_deployment = {
-#   stage_name        = "deploy"
-#   stage_description = "This is a default description"
-#   description       = "This is a default description"
+#   stage_name        = "afasdf"
+  # stage_description = "This is a default description"
+  # description       = "This is a default description"
 #   variables         = null
 # }
 
-# api_gateway_stages = [
-#     {
-#       stage_name            = "asd"
-#       stage_description     = "The description of the stage."
-#       stage_variables       = {}
-#       cache_cluster_enabled = true
-#       # cache_cluster_size    = null
-#       client_certificate_id = ""
-#       documentation_version = ""
-#       xray_tracing_enabled  = true
-#       access_log_settings = [
-#         # {
-#         #   destination_arn = "blah"
-#         #   format          = "blah2"
-#         # }
-#       ]
-#     },
-#     {
-#       stage_name            = "asdfa"
-#       stage_description     = "The description of the stage."
-#       stage_variables       = {}
-#       cache_cluster_enabled = false
-#       cache_cluster_size    = 0.5
-#       client_certificate_id = ""
-#       documentation_version = ""
-#       xray_tracing_enabled  = true
-#       access_log_settings = [
-#         {
-#           destination_arn = "blah"
-#           format          = "blah2"
-#         }
-#       ]
-#     },
+api_gateway_stages = [
+    {
+      stage_name            = "asdf"
+      # stage_description     = null
+      stage_variables       = {}
+      cache_cluster_enabled = true
+      # cache_cluster_size    = 0.5
+      client_certificate_id = null
+      # documentation_version = "asdf"
+      # xray_tracing_enabled  = true
+      # access_log_settings = [
+      #   # {
+      #   #   destination_arn = "blah"
+      #   #   format          = "blah2"
+      #   # }
+      # ]
+    },
+    # {
+    #   stage_name            = ""
+    #   stage_description     = "The description of the stage."
+    #   stage_variables       = {}
+    #   cache_cluster_enabled = false
+    #   cache_cluster_size    = 0.5
+    #   client_certificate_id = ""
+    #   documentation_version = ""
+    #   xray_tracing_enabled  = true
+    #   # access_log_settings = [
+    #   #   {
+    #   #     destination_arn = "blah"
+    #   #     format          = "blah2"
+    #   #   }
+    #   # ]
+    # },
 #     {
 #       stage_name = "hello"
 #       }
-# ]
+]
 
 authorizer_definitions = [
   {

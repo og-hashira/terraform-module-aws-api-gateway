@@ -1,5 +1,3 @@
-# Module      : Api Gateway
-# Description : Terraform Api Gateway module variables.
 variable "enabled" {
   type        = bool
   default     = true
@@ -30,6 +28,7 @@ variable tags {
 variable api_gateway {
   description = "AWS API Gateway Settings."
   type        = any
+  default     = null
   /**
   type = object({
     api_key_source                      = any # "The source of the API key for requests. Valid values are HEADER (default) and AUTHORIZER."
@@ -45,10 +44,16 @@ variable api_gateway {
   })
   */
 
+  # api_gateway not null
+  validation {
+    condition     = var.api_gateway != null
+    error_message = "Variable object api_gateway must be provided."
+  }
+
   # name
   validation {
-    condition     = can(tostring(var.api_gateway.name))
-    error_message = "Attribute name of api_gateway must be a string."
+    condition     = try(length(tostring(var.api_gateway.name)) > 1)
+    error_message = "Attribute name of api_gateway must be provided."
   }
 
   # description
@@ -106,21 +111,43 @@ variable api_gateway {
 variable "api_gateway_deployment" {
   description = "AWS API Gateway deployment."
   default     = null
+  type        = any
   # type = object({
   #   stage_name        = string (required) - The name of the model.
   #   stage_description = string (optional) - The description of the stage.
   #   description       = string (optional) - The description of the model.
   #   variables         = map (Optional) - A map that defines variables for the stage.
   # })
+  
+  # stage_name
   validation {
-    condition     = var.api_gateway_deployment != null ? length(var.api_gateway_deployment.stage_name) > 1 : true
-    error_message = "The api_gateway_deployment variable is optional, but if specified, it must contain a string attribute called 'stage_name' with length > 1."
+    condition     = var.api_gateway_deployment != null ? try(length(tostring(lookup(var.api_gateway_deployment, "stage_name", null))) > 1, false) : true
+    error_message = "If the optional api_gateway_deployment object is provided, attribute stage_name of api_gateway_deployment must be provided and must be a string of length > 1."
+  }
+
+  # stage_description
+  validation {
+    condition     = var.api_gateway_deployment != null ? can(tostring(lookup(var.api_gateway_deployment, "stage_description", ""))) : true
+    error_message = "Optional attribute stage_description of api_gateway_deployment must be a string if specified."
+  }
+
+  # description
+  validation {
+    condition     = var.api_gateway_deployment != null ? can(tostring(lookup(var.api_gateway_deployment, "description", ""))) : true
+    error_message = "Optional attribute description of api_gateway_deployment must be a string if specified."
+  }
+
+  # variables
+  validation {
+    condition     = var.api_gateway_deployment != null ? can(tomap(lookup(var.api_gateway_deployment, "variables", null))) : true
+    error_message = "Optional attribute variables of api_gateway_deployment must be an object map."
   }
 }
 
 variable "api_gateway_stages" {
   description = "AWS API Gateway stage."
   default     = []
+  type        = set(any)
   # type = list(object({
   #   stage_name            = string (required) - The name of the stage. If the specified stage already exists, it will be updated to point to the new deployment. If the stage does not exist, a new one will be created and point to this deployment.
   #   stage_description     = string (optional) - The description of the stage.
@@ -135,10 +162,56 @@ variable "api_gateway_stages" {
   #     format          = string (optional) - The formatting and values recorded in the logs.
   #   }))
   # }))
+
+  # stage_name
   validation {
-    condition     = var.api_gateway_stages != [] ? ! can(index([for stage in var.api_gateway_stages : length(stage.stage_name) > 1], false)) : true
-    error_message = "The api_gateway_stages variable is optional, but if specified, it must contain a string attribute called 'stage_name' with length > 1."
+    condition     = var.api_gateway_stages != [] ? !can(index([for stage in var.api_gateway_stages : can(lookup(stage, "stage_name")) ? length(lookup(stage, "stage_name")) > 1 : false], false)) : true
+    error_message = "If the set of 'api_gateway_stages' is provided, each value must contain an attribute 'stage_name' with length > 1."
   }
+
+  # description
+  validation {
+    condition     = var.api_gateway_stages != [] ? !can(index([for stage in var.api_gateway_stages : length(lookup(stage, "stage_description")) > 1], false)) : true
+    error_message = "Optional attribute 'stage_description' of 'api_gateway_stages' must be a string if specified with length > 1."
+  }
+
+  # stage_variables
+  validation {
+    condition     = var.api_gateway_stages != [] ? !can(index([for stage in var.api_gateway_stages : can(lookup(stage, "stage_variables")) ? can(tomap(lookup(stage, "stage_variables"))) : true], false)) : true
+    error_message = "Optional attribute 'stage_variables' of 'api_gateway_stages' must be an object map."
+  }
+
+  # cache_cluster_enabled
+  validation {
+    condition     = var.api_gateway_stages != [] ? !can(index([for stage in var.api_gateway_stages : can(lookup(stage, "cache_cluster_enabled")) ? can(tobool(lookup(stage, "cache_cluster_enabled"))) : true], false)) : true
+    error_message = "Optional attribute 'cache_cluster_enabled' of 'api_gateway_stages' must be 'true' or 'false'."
+  }
+
+  # cache_cluster_size
+  validation {
+    condition     = var.api_gateway_stages != [] ? !can(index([for stage in var.api_gateway_stages : can(lookup(stage, "cache_cluster_size")) ? can(tonumber(lookup(stage, "cache_cluster_size"))) && contains([0.5, 1.6, 6.1, 13.5, 28.4, 58.2, 118, 237],lookup(stage, "cache_cluster_size")) : true], false)) : true
+    error_message = "Optional attribute 'cache_cluster_size' of 'api_gateway_stages' must be a number in the following set [0.5, 1.6, 6.1, 13.5, 28.4, 58.2, 118, 237]."
+  }
+
+  # client_certificate_id
+  validation {
+    condition     = var.api_gateway_stages != [] ? !can(index([for stage in var.api_gateway_stages : length(lookup(stage, "client_certificate_id")) > 1], false)) : true
+    error_message = "Optional attribute 'client_certificate_id' of 'api_gateway_stages' must be a string if specified with length > 1."
+  }
+
+  # documentation_version
+  validation {
+    condition     = var.api_gateway_stages != [] ? !can(index([for stage in var.api_gateway_stages : length(lookup(stage, "documentation_version")) > 1], false)) : true
+    error_message = "Optional attribute 'documentation_version' of 'api_gateway_stages' must be a string if specified with length > 1."
+  }
+
+  # xray_tracing_enabled
+  validation {
+    condition     = var.api_gateway_stages != [] ? !can(index([for stage in var.api_gateway_stages : can(lookup(stage, "xray_tracing_enabled")) ? can(tobool(lookup(stage, "xray_tracing_enabled"))) : true], false)) : true
+    error_message = "Optional attribute 'xray_tracing_enabled' of 'api_gateway_stages' must be 'true' or 'false'."
+  }
+
+  # TODO: access_log_settings
 }
 
 variable "api_gateway_models" {
