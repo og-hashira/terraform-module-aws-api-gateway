@@ -3,14 +3,16 @@ provider "aws" {
 }
 
 locals {
+  
   ##################
   ## Set defaults ##
   ##################
+  
   default_managedby_description = "Managed by the P&G AWS API Gateway Terraform Module https://github.com/procter-gamble/terraform-module-aws-api-gateway.git"
 
-  # api_gateway
+  // api_gateway
   api_gateway_defaults = {
-    # name                              = string (required)
+    // name                              = string (required)
     api_key_source                      = null
     binary_media_types                  = null
     description                         = local.default_managedby_description
@@ -24,18 +26,18 @@ locals {
   }
   api_gateway = merge(local.api_gateway_defaults, var.api_gateway)
 
-  # api_gateway_deployment defaults
+  // api_gateway_deployment defaults
   api_gateway_deployment_defaults = {
-    # stage_name      = string (required)
+    // stage_name      = string (required)
     stage_description = local.default_managedby_description
     description       = local.default_managedby_description
     variables         = null
   }
   api_gateway_deployment = var.api_gateway_deployment != null ? merge(local.api_gateway_deployment_defaults, var.api_gateway_deployment) : null
 
-  # api_gateway_stages defaults
+  // api_gateway_stages defaults
   api_gateway_stage_defaults = {
-    # stage_name          = string
+    // stage_name          = string
     access_log_settings   = null
     cache_cluster_enabled = null
     cache_cluster_size    = null
@@ -47,50 +49,48 @@ locals {
   }
   api_gateway_stages = var.api_gateway_stages != null ? [for stage in var.api_gateway_stages : merge(local.api_gateway_stage_defaults, stage)] : null
 
-  # api_gateway_models defaults
+  // api_gateway_models defaults
   api_gateway_model_defaults = {
-    # name         = string (required)
+    // name         = string (required)
     description  = local.default_managedby_description
     content_type = "application/json"
     schema       = "{\"type\":\"object\"}"
   }
   api_gateway_models = var.api_gateway_models != null ? [for model in var.api_gateway_models : merge(local.api_gateway_model_defaults, model)] : null
 
+  ###########################
+  ## Resource path parsing ##
+  ###########################
+  paths = [for method in var.api_gateway_methods : method.resource_path]
 
+  paths_as_segments = [for path in local.paths : split("/", path)]
 
-  # ###########################
-  # ## Resource path parsing ##
-  # ###########################
-  # paths = [for method in var.api_gateway_methods : method.resource_path]
+  unique_paths = (toset(
+    flatten(
+      [for path_segments in local.paths_as_segments :
+        [for end_index in range(length(path_segments), 0) :
+  join("/", slice(path_segments, 0, end_index))]])))
 
-  # paths_as_segments = [for path in local.paths : split("/", path)]
+  length_paths_map = (transpose({ for path in local.unique_paths : path => [length(split("/", path))] }))
+  
+  length_path_segments_map = ({ for quantity, paths in local.length_paths_map : quantity => [for path in paths : split("/", path)] })
 
-  # unique_paths = (toset(
-  #   flatten(
-  #     [for path_segments in local.paths_as_segments :
-  #       [for end_index in range(length(path_segments), 0) :
-  # join("/", slice(path_segments, 0, end_index))]])))
+  max_number_of_levels = length(local.length_path_segments_map)
 
-  # length_paths_map = (transpose({ for path in local.unique_paths : path => [length(split("/", path))] }))
+  resource_method_map = (
+    merge(
+      zipmap(flatten(local.length_paths_map[1]), values(aws_api_gateway_resource.first_paths)[*]["id"]),
+      local.max_number_of_levels > 1 ? zipmap(flatten(local.length_paths_map[2]), values(aws_api_gateway_resource.second_paths)[*]["id"]) : {},
+      local.max_number_of_levels > 2 ? zipmap(flatten(local.length_paths_map[3]), values(aws_api_gateway_resource.third_paths)[*]["id"]) : {},
+      local.max_number_of_levels > 3 ? zipmap(flatten(local.length_paths_map[4]), values(aws_api_gateway_resource.fourth_paths)[*]["id"]) : {},
+      local.max_number_of_levels > 4 ? zipmap(flatten(local.length_paths_map[5]), values(aws_api_gateway_resource.fifth_paths)[*]["id"]) : {}
+    )
+  )
 
-  # length_path_segments_map = ({ for quantity, paths in local.length_paths_map : quantity => [for path in paths : split("/", path)] })
-
-  # max_number_of_levels = length(local.length_path_segments_map)
-
-  # resource_method_map = (
-  #   merge(
-  #     zipmap(flatten(local.length_paths_map[1]), values(aws_api_gateway_resource.first_paths)[*]["id"]),
-  #     local.max_number_of_levels > 1 ? zipmap(flatten(local.length_paths_map[2]), values(aws_api_gateway_resource.second_paths)[*]["id"]) : {},
-  #     local.max_number_of_levels > 2 ? zipmap(flatten(local.length_paths_map[3]), values(aws_api_gateway_resource.third_paths)[*]["id"]) : {},
-  #     local.max_number_of_levels > 3 ? zipmap(flatten(local.length_paths_map[4]), values(aws_api_gateway_resource.fourth_paths)[*]["id"]) : {},
-  #     local.max_number_of_levels > 4 ? zipmap(flatten(local.length_paths_map[5]), values(aws_api_gateway_resource.fifth_paths)[*]["id"]) : {}
-  #   )
-  # )
-
-  # ########################
-  # ## Authorizor mapping ##
-  # ########################
-  # authorizers = zipmap([for auth in var.authorizer_definitions : auth.authorizer_name], aws_api_gateway_authorizer.default[*]["id"])
+  ########################
+  ## Authorizor mapping ##
+  ########################
+  authorizers = zipmap([for auth in var.authorizer_definitions : auth.authorizer_name], aws_api_gateway_authorizer.default[*]["id"])
 }
 
 # Resource    : API Gateway 
@@ -141,8 +141,8 @@ resource aws_api_gateway_client_certificate default {
 #   depends_on = [aws_api_gateway_deployment.default]
 
 #   api_id = aws_api_gateway_rest_api.default.*.id[0]
-#   # TODO:  Which stage?
-#   # stage_name  = var.stage_name
+#   // TODO:  Which stage?
+#   // stage_name  = var.stage_name
 #   domain_name = local.api_gateway.custom_domain
 # }
 
@@ -151,7 +151,7 @@ resource aws_api_gateway_client_certificate default {
 resource aws_api_gateway_deployment default {
   count = local.api_gateway_deployment != null ? length(local.api_gateway_deployment) : 0
 
-  # depends_on = [aws_api_gateway_method.default, aws_api_gateway_integration.default]
+  // depends_on = [aws_api_gateway_method.default, aws_api_gateway_integration.default]
 
   rest_api_id       = aws_api_gateway_rest_api.default.*.id[0]
   stage_name        = local.api_gateway_deployment.stage_name
