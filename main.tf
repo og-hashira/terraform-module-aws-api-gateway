@@ -65,7 +65,7 @@ locals {
     enabled         = true
     value           = null
   }
-  api_gatewapi_keys = var.api_keys != null ? [for api_key in var.api_keys : merge(local.api_keys_defaults, api_key)] : null
+  api_keys = var.api_keys != null ? [for api_key in var.api_keys : merge(local.api_keys_defaults, api_key)] : null
 
   // vpc_links
   vpc_links_defaults = {
@@ -75,6 +75,9 @@ locals {
     // target_arns       = ["arn"]
   }
   vpc_links = var.vpc_links != null ? [for vpc_link in var.vpc_links : merge(local.vpc_links_defaults, vpc_link)] : null
+
+  // authorizer_definitions
+  # method.request.header.Authorizatio
 
   ###########################
   ## Resource path parsing ##

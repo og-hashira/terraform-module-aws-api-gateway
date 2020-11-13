@@ -335,12 +335,11 @@ variable "authorizer_definitions" {
     authorizer_name                  = string (required) - The name of the authorizer.
     authorizer_uri                   = string (required) - The authorizer's Uniform Resource Identifier (URI). This must be a well-formed Lambda function URI in the form of arn:aws:apigateway:{region}:lambda:path/{service_api}, e.g. arn:aws:apigateway:us-west-2:lambda:path/2015-03-31/functions/arn:aws:lambda:us-west-2:012345678912:function:my-function/invocations.
     identity_source                  = string (optional) - The source of the identity in an incoming request. Defaults to method.request.header.Authorization. For REQUEST type, this may be a comma-separated list of values, including headers, query string parameters and stage variables - e.g. \"method.request.header.SomeHeaderName,method.request.querystring.SomeQueryStringName\".
+    authorizer_type                  = string (optional) - The type of the authorizer. Possible values are TOKEN for a Lambda function using a single authorization token submitted in a custom header, REQUEST for a Lambda function using incoming request parameters, or COGNITO_USER_POOLS for using an Amazon Cognito user pool. Defaults to TOKEN.
+    authorizer_credentials           = string (optional) - The credentials required for the authorizer. To specify an IAM Role for API Gateway to assume, use the IAM Role ARN.
+    authorizer_result_ttl_in_seconds = number (optional) - The TTL of cached authorizer results in seconds. Defaults to 0.
     identity_validation_expression   = string (optional) - A validation expression for the incoming identity. For TOKEN type, this value should be a regular expression. The incoming token from the client is matched against this expression, and will proceed if the token matches. If the token doesn't match, the client receives a 401 Unauthorized response.
-    authorizer_result_ttl_in_seconds = number (optional) - The TTL of cached authorizer results in seconds. Defaults to 300.
-    authorizer_credentials           = string (optional) 
-    authorizer_type                  = string (optional) The type of the authorizer. Possible values are TOKEN for a Lambda function using a single authorization token submitted in a custom header, REQUEST for a Lambda function using incoming request parameters, or COGNITO_USER_POOLS for using an Amazon Cognito user pool. Defaults to TOKEN.
-    authorization                    = string (optional) The type of authorization used for the method (NONE, CUSTOM, AWS_IAM, COGNITO_USER_POOLS).
-    provider_arns                    = string (optional) Required for type COGNITO_USER_POOLS) A list of the Amazon Cognito user pool ARNs. Each element is of this format: arn:aws:cognito-idp:{region}:{account_id}:userpool/{user_pool_id}.
+    provider_arns                    = string (optional) - Required for type COGNITO_USER_POOLS) A list of the Amazon Cognito user pool ARNs. Each element is of this format: arn:aws:cognito-idp:{region}:{account_id}:userpool/{user_pool_id}.
   }))
   */
 
@@ -348,6 +347,49 @@ variable "authorizer_definitions" {
   validation {
     condition     = var.authorizer_definitions != [] ? ! can(index([for auth in var.authorizer_definitions : can(lookup(auth, "authorizer_name")) ? length(lookup(auth, "authorizer_name")) > 1 : false], false)) : true
     error_message = "If the set of 'authorizer_definitions' is provided, each value must contain an attribute 'authorizer_name' with length > 1."
+  }
+
+  // authoizer_uri
+  validation {
+    condition     = var.authorizer_definitions != [] ? ! can(index([for auth in var.authorizer_definitions : can(lookup(auth, "authorizer_uri")) ? length(lookup(auth, "authorizer_uri")) > 1 : false], false)) : true
+    error_message = "If the set of 'authorizer_definitions' is provided, each value must contain an attribute 'authorizer_uri' with length > 1."
+  }
+
+  // identity_source
+  validation {
+    condition     = var.authorizer_definitions != [] ? ! can(index([for auth in var.authorizer_definitions : length(lookup(auth, "identity_source")) > 1], false)) : true
+    error_message = "Optional attribute 'identity_source' of 'authorizer_definitions' must be a string if specified with length > 1."
+  }
+
+  // authorizer_type
+  validation {
+    condition     = var.authorizer_definitions != [] ? can(index([for auth in var.authorizer_definitions : can(lookup(auth, "authorizer_type")) ? contains(["TOKEN", "REQUEST"], lookup(auth, "authorizer_type")) : false ], true)) : true
+    error_message = "Optional attribute 'authorizer_type' of 'authorizer_definitions' must be a string equal to 'TOKEN' or 'REQUEST'."
+  }
+
+  // authorizer_credentials
+  validation {
+    condition     = var.authorizer_definitions != [] ? ! can(index([for auth in var.authorizer_definitions : length(lookup(auth, "authorizer_credentials")) > 1], false)) : true
+    error_message = "Optional attribute 'authorizer_credentials' of 'authorizer_definitions' must be a string if specified with length > 1."
+  }
+
+  // authorizer_result_ttl_in_seconds
+  validation {
+    
+    condition     = var.authorizer_definitions != [] ? ! can(index([for auth in var.authorizer_definitions : can(lookup(auth, "authorizer_result_ttl_in_seconds")) ? tonumber(lookup(auth, "authorizer_result_ttl_in_seconds")) >= 0 && tonumber(lookup(auth, "authorizer_result_ttl_in_seconds")) <= 3600 : true], false)) : true
+    error_message = "Optional attribute 'authorizer_result_ttl_in_seconds' of 'authorizer_definitions' must be a number in range 0 - 3600."
+  }
+
+  // identity_validation_expression
+  validation {
+    condition     = var.authorizer_definitions != [] ? ! can(index([for auth in var.authorizer_definitions : length(lookup(auth, "identity_validation_expression")) > 1], false)) : true
+    error_message = "Optional attribute 'identity_validation_expression' of 'authorizer_definitions' must be a string if specified with length > 1."
+  }
+
+  // provider_arns
+  validation {
+    condition     = var.authorizer_definitions != [] ? ! can(index([for auth in var.authorizer_definitions : can(toset(lookup(auth, "provider_arns")))], false)) : true
+    error_message = "Optional attribute 'provider_arns' of 'authorizer_definitions' must be a set of at least one string."
   }
 }
 

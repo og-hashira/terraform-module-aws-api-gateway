@@ -88,23 +88,23 @@ authorizer_definitions = [
   {
     authorizer_name                  = "pingFedAuth"
     authorizer_uri                   = "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:459235286243:function:my-authorizor-lambda/invocations"
-    identity_source                  = ""
-    identity_validation_expression   = ""
-    authorizer_result_ttl_in_seconds = 0
-    authorizer_type                  = ""
-    authorizer_credentials           = ""
-    authorization                    = "CUSTOM"
+    # identity_source                  = ""
+    # identity_validation_expression   = ""
+    # authorizer_result_ttl_in_seconds = 700
+    authorizer_type                  = "TOKEN"
+    # authorizer_credentials           = ""
+    # authorization                    = "CUSTOM"
     provider_arns                    = []
   },
   {
     authorizer_name                  = "pingFedAuth2"
     authorizer_uri                   = "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:459235286243:function:my-authorizor-lambda/invocations"
-    identity_source                  = ""
-    identity_validation_expression   = ""
-    authorizer_result_ttl_in_seconds = 0
-    authorizer_type                  = ""
-    authorizer_credentials           = ""
-    authorization                    = "CUSTOM"
+    # identity_source                  = ""
+    # identity_validation_expression   = ""
+    # authorizer_result_ttl_in_seconds = 55
+    authorizer_type                  = "REQUEST"
+    # authorizer_credentials           = ""
+    # authorization                    = "CUSTOM"
     provider_arns                    = []
   }
 ]
