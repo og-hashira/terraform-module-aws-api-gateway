@@ -92,8 +92,8 @@ locals {
   ###########################
   ## Resource path parsing ##
   ###########################
-  /*
-  paths = [for method in var.api_gateway_methods : method.resource_path]
+  
+  paths = [for method in local.api_gateway_methods : method.resource_path]
 
   paths_as_segments = [for path in local.paths : split("/", path)]
 
@@ -122,8 +122,8 @@ locals {
   ########################
   ## Authorizor mapping ##
   ########################
-  authorizers = zipmap([for auth in var.authorizer_definitions : auth.authorizer_name], aws_api_gateway_authorizer.default[*]["id"])
-*/
+  authorizers = zipmap([for auth in local.authorizer_definitions : auth.authorizer_name], aws_api_gateway_authorizer.default[*]["id"])
+
 }
 
 # Resource    : API Gateway 
@@ -257,63 +257,63 @@ resource aws_api_gateway_vpc_link default {
   tags = var.tags
 }
 
-# # Module      : Api Gateway Authorizer
-# # Description : Terraform module to create Api Gateway Authorizer resource on AWS.
-# resource "aws_api_gateway_authorizer" "default" {
-#   count = length(var.authorizer_definitions)
+# Resource    : Api Gateway Authorizer
+# Description : Terraform resource to create Api Gateway Authorizer on AWS.
+resource aws_api_gateway_authorizer default {
+  count = length(local.authorizer_definitions)
 
-#   rest_api_id                      = aws_api_gateway_rest_api.default.*.id[0]
-#   name                             = element(var.authorizer_definitions, count.index).authorizer_name
-#   authorizer_uri                   = length(element(var.authorizer_definitions, count.index).authorizer_uri) > 0 ? element(var.authorizer_definitions, count.index).authorizer_uri : ""
-#   authorizer_credentials           = length(element(var.authorizer_definitions, count.index).authorizer_credentials) > 0 ? element(var.authorizer_definitions, count.index).authorizer_credentials : ""
-#   authorizer_result_ttl_in_seconds = element(var.authorizer_definitions, count.index).authorizer_result_ttl_in_seconds > 0 ? element(var.authorizer_definitions, count.index).authorizer_result_ttl_in_seconds : 0
-#   identity_source                  = length(element(var.authorizer_definitions, count.index).identity_source) > 0 ? element(var.authorizer_definitions, count.index).identity_source : "method.request.header.Authorization"
-#   type                             = length(element(var.authorizer_definitions, count.index).authorizer_type) > 0 ? element(var.authorizer_definitions, count.index).authorizer_type : "TOKEN"
-#   identity_validation_expression   = length(element(var.authorizer_definitions, count.index).identity_validation_expression) > 0 ? element(var.authorizer_definitions, count.index).identity_validation_expression : ""
-#   provider_arns                    = length(element(var.authorizer_definitions, count.index).provider_arns) > 0 ? element(var.authorizer_definitions, count.index).provider_arns : null
-# }
+  rest_api_id                      = aws_api_gateway_rest_api.default.*.id[0]
+  name                             = element(local.authorizer_definitions, count.index).authorizer_name
+  authorizer_uri                   = element(local.authorizer_definitions, count.index).authorizer_uri
+  authorizer_credentials           = element(local.authorizer_definitions, count.index).authorizer_credentials
+  authorizer_result_ttl_in_seconds = element(local.authorizer_definitions, count.index).authorizer_result_ttl_in_seconds
+  identity_source                  = element(local.authorizer_definitions, count.index).identity_source
+  type                             = element(local.authorizer_definitions, count.index).authorizer_type
+  identity_validation_expression   = element(local.authorizer_definitions, count.index).identity_validation_expression
+  provider_arns                    = element(local.authorizer_definitions, count.index).provider_arns
+}
 
-# # Module      : Api Gateway Resources (curently supporting up to 5 nested levels)
-# # Description : Terraform module to create Api Gateway resource on AWS, at the root level
-# resource "aws_api_gateway_resource" "first_paths" {
-#   for_each = toset(flatten(local.length_path_segments_map[1]))
+# Resource    : Api Gateway Resources (curently supporting up to 5 nested levels)
+# Description : Terraform resource to create Api Gateway Resources on AWS
+resource aws_api_gateway_resource first_paths {
+  for_each = toset(flatten(local.length_path_segments_map[1]))
 
-#   rest_api_id = aws_api_gateway_rest_api.default.*.id[0]
-#   parent_id   = aws_api_gateway_rest_api.default.*.root_resource_id[0]
-#   path_part   = each.value
-# }
+  rest_api_id = aws_api_gateway_rest_api.default.*.id[0]
+  parent_id   = aws_api_gateway_rest_api.default.*.root_resource_id[0]
+  path_part   = each.value
+}
 
-# resource "aws_api_gateway_resource" "second_paths" {
-#   for_each = local.max_number_of_levels > 1 ? { for path in local.length_path_segments_map[2] : join("/", path) => { segment = path[1], parent = join("/", slice(path, 0, 1)) } } : {}
+resource aws_api_gateway_resource second_paths {
+  for_each = local.max_number_of_levels > 1 ? { for path in local.length_path_segments_map[2] : join("/", path) => { segment = path[1], parent = join("/", slice(path, 0, 1)) } } : {}
 
-#   rest_api_id = aws_api_gateway_rest_api.default.*.id[0]
-#   parent_id   = aws_api_gateway_resource.first_paths[each.value.parent].id
-#   path_part   = each.value.segment
-# }
+  rest_api_id = aws_api_gateway_rest_api.default.*.id[0]
+  parent_id   = aws_api_gateway_resource.first_paths[each.value.parent].id
+  path_part   = each.value.segment
+}
 
-# resource "aws_api_gateway_resource" "third_paths" {
-#   for_each = local.max_number_of_levels > 2 ? { for path in local.length_path_segments_map[3] : join("/", path) => { segment = path[2], parent = join("/", slice(path, 0, 2)) } } : {}
+resource aws_api_gateway_resource third_paths {
+  for_each = local.max_number_of_levels > 2 ? { for path in local.length_path_segments_map[3] : join("/", path) => { segment = path[2], parent = join("/", slice(path, 0, 2)) } } : {}
 
-#   rest_api_id = aws_api_gateway_rest_api.default.*.id[0]
-#   parent_id   = aws_api_gateway_resource.second_paths[each.value.parent].id
-#   path_part   = each.value.segment
-# }
+  rest_api_id = aws_api_gateway_rest_api.default.*.id[0]
+  parent_id   = aws_api_gateway_resource.second_paths[each.value.parent].id
+  path_part   = each.value.segment
+}
 
-# resource "aws_api_gateway_resource" "fourth_paths" {
-#   for_each = local.max_number_of_levels > 3 ? { for path in local.length_path_segments_map[4] : join("/", path) => { segment = path[3], parent = join("/", slice(path, 0, 3)) } } : {}
+resource aws_api_gateway_resource fourth_paths {
+  for_each = local.max_number_of_levels > 3 ? { for path in local.length_path_segments_map[4] : join("/", path) => { segment = path[3], parent = join("/", slice(path, 0, 3)) } } : {}
 
-#   rest_api_id = aws_api_gateway_rest_api.default.*.id[0]
-#   parent_id   = aws_api_gateway_resource.third_paths[each.value.parent].id
-#   path_part   = each.value.segment
-# }
+  rest_api_id = aws_api_gateway_rest_api.default.*.id[0]
+  parent_id   = aws_api_gateway_resource.third_paths[each.value.parent].id
+  path_part   = each.value.segment
+}
 
-# resource "aws_api_gateway_resource" "fifth_paths" {
-#   for_each = local.max_number_of_levels > 4 ? { for path in local.length_path_segments_map[5] : join("/", path) => { segment = path[4], parent = join("/", slice(path, 0, 4)) } } : {}
+resource aws_api_gateway_resource fifth_paths {
+  for_each = local.max_number_of_levels > 4 ? { for path in local.length_path_segments_map[5] : join("/", path) => { segment = path[4], parent = join("/", slice(path, 0, 4)) } } : {}
 
-#   rest_api_id = aws_api_gateway_rest_api.default.*.id[0]
-#   parent_id   = aws_api_gateway_resource.fourth_paths[each.value.parent].id
-#   path_part   = each.value.segment
-# }
+  rest_api_id = aws_api_gateway_rest_api.default.*.id[0]
+  parent_id   = aws_api_gateway_resource.fourth_paths[each.value.parent].id
+  path_part   = each.value.segment
+}
 
 # # Module      : Api Gateway Method
 # # Description : Terraform module to create Api Gateway Method resource on AWS.
