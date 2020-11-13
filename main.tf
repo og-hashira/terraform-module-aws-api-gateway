@@ -77,7 +77,17 @@ locals {
   vpc_links = var.vpc_links != null ? [for vpc_link in var.vpc_links : merge(local.vpc_links_defaults, vpc_link)] : null
 
   // authorizer_definitions
-  # method.request.header.Authorizatio
+  authorizer_definitions_defaults = {
+    # authorizer_name                  = string (required)
+    # authorizer_uri                   = string (required)
+    identity_source                  = "method.request.header.Authorization"
+    identity_validation_expression   = null
+    authorizer_result_ttl_in_seconds = 0
+    authorizer_type                  = "TOKEN"
+    authorizer_credentials           = null
+    provider_arns                    = []
+  }
+  authorizer_definitions = var.authorizer_definitions != null ? [for auth in var.authorizer_definitions : merge(local.authorizer_definitions, auth)] : null
 
   ###########################
   ## Resource path parsing ##

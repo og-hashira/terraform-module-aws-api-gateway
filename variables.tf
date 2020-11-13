@@ -363,7 +363,7 @@ variable "authorizer_definitions" {
 
   // authorizer_type
   validation {
-    condition     = var.authorizer_definitions != [] ? can(index([for auth in var.authorizer_definitions : can(lookup(auth, "authorizer_type")) ? contains(["TOKEN", "REQUEST"], lookup(auth, "authorizer_type")) : false ], true)) : true
+    condition     = var.authorizer_definitions != [] ? ! can(index([for auth in var.authorizer_definitions : can(lookup(auth, "authorizer_type")) ? !contains(["TOKEN", "REQUEST"], lookup(auth, "authorizer_type")) : false ], true)) : true
     error_message = "Optional attribute 'authorizer_type' of 'authorizer_definitions' must be a string equal to 'TOKEN' or 'REQUEST'."
   }
 
