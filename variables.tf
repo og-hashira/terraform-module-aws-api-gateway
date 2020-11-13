@@ -10,17 +10,17 @@ variable tags {
   description = "Tags to add to all resources."
 
   validation {
-    condition     = can([for key, value in var.tags : length(key) <= 128 ])
+    condition     = can([for key, value in var.tags : length(key) <= 128])
     error_message = "AWS Tag Keys must be 128 characters or less in length."
   }
 
   validation {
-    condition     = can([for key, value in var.tags : length(value) <= 256 ])
+    condition     = can([for key, value in var.tags : length(value) <= 256])
     error_message = "AWS Tag Values must be 256 characters or less in length."
   }
 
   validation {
-    condition     = can([ for key, value in var.tags : regex("^[\\w\\d\\s\\+\\-\\=\\.\\_\\:\\/\\@]+$", "${key} ${value}") ])
+    condition     = can([for key, value in var.tags : regex("^[\\w\\d\\s\\+\\-\\=\\.\\_\\:\\/\\@]+$", "${key} ${value}")])
     error_message = "AWS Tag Keys and Values must match RegExp ^[\\w\\d\\s\\+\\-\\=\\.\\_\\:\\/\\@]+$ ."
   }
 }
@@ -29,7 +29,7 @@ variable api_gateway {
   description = "AWS API Gateway Settings."
   type        = any
   default     = null
-  /**
+  /*
   type = object({
     api_key_source                      = any # "The source of the API key for requests. Valid values are HEADER (default) and AUTHORIZER."
     binary_media_types                  = set(string) # "The list of binary media types supported by the RestApi. By default, the RestApi supports only UTF-8-encoded text payloads."
@@ -169,49 +169,49 @@ variable "api_gateway_stages" {
 
   // stage_name
   validation {
-    condition     = var.api_gateway_stages != [] ? !can(index([for stage in var.api_gateway_stages : can(lookup(stage, "stage_name")) ? length(lookup(stage, "stage_name")) > 1 : false], false)) : true
+    condition     = var.api_gateway_stages != [] ? ! can(index([for stage in var.api_gateway_stages : can(lookup(stage, "stage_name")) ? length(lookup(stage, "stage_name")) > 1 : false], false)) : true
     error_message = "If the set of 'api_gateway_stages' is provided, each value must contain an attribute 'stage_name' with length > 1."
   }
 
   // description
   validation {
-    condition     = var.api_gateway_stages != [] ? !can(index([for stage in var.api_gateway_stages : length(lookup(stage, "stage_description")) > 1], false)) : true
+    condition     = var.api_gateway_stages != [] ? ! can(index([for stage in var.api_gateway_stages : length(lookup(stage, "stage_description")) > 1], false)) : true
     error_message = "Optional attribute 'stage_description' of 'api_gateway_stages' must be a string if specified with length > 1."
   }
 
   // stage_variables
   validation {
-    condition     = var.api_gateway_stages != [] ? !can(index([for stage in var.api_gateway_stages : can(lookup(stage, "stage_variables")) ? can(tomap(lookup(stage, "stage_variables"))) : true], false)) : true
+    condition     = var.api_gateway_stages != [] ? ! can(index([for stage in var.api_gateway_stages : can(lookup(stage, "stage_variables")) ? can(tomap(lookup(stage, "stage_variables"))) : true], false)) : true
     error_message = "Optional attribute 'stage_variables' of 'api_gateway_stages' must be an object map."
   }
 
   // cache_cluster_enabled
   validation {
-    condition     = var.api_gateway_stages != [] ? !can(index([for stage in var.api_gateway_stages : can(lookup(stage, "cache_cluster_enabled")) ? can(tobool(lookup(stage, "cache_cluster_enabled"))) : true], false)) : true
+    condition     = var.api_gateway_stages != [] ? ! can(index([for stage in var.api_gateway_stages : can(lookup(stage, "cache_cluster_enabled")) ? can(tobool(lookup(stage, "cache_cluster_enabled"))) : true], false)) : true
     error_message = "Optional attribute 'cache_cluster_enabled' of 'api_gateway_stages' must be 'true' or 'false'."
   }
 
   // cache_cluster_size
   validation {
-    condition     = var.api_gateway_stages != [] ? !can(index([for stage in var.api_gateway_stages : can(lookup(stage, "cache_cluster_size")) ? can(tonumber(lookup(stage, "cache_cluster_size"))) && contains([0.5, 1.6, 6.1, 13.5, 28.4, 58.2, 118, 237],lookup(stage, "cache_cluster_size")) : true], false)) : true
+    condition     = var.api_gateway_stages != [] ? ! can(index([for stage in var.api_gateway_stages : can(lookup(stage, "cache_cluster_size")) ? can(tonumber(lookup(stage, "cache_cluster_size"))) && contains([0.5, 1.6, 6.1, 13.5, 28.4, 58.2, 118, 237], lookup(stage, "cache_cluster_size")) : true], false)) : true
     error_message = "Optional attribute 'cache_cluster_size' of 'api_gateway_stages' must be a number in the following set [0.5, 1.6, 6.1, 13.5, 28.4, 58.2, 118, 237]."
   }
 
   // client_certificate_id
   validation {
-    condition     = var.api_gateway_stages != [] ? !can(index([for stage in var.api_gateway_stages : length(lookup(stage, "client_certificate_id")) > 1], false)) : true
+    condition     = var.api_gateway_stages != [] ? ! can(index([for stage in var.api_gateway_stages : length(lookup(stage, "client_certificate_id")) > 1], false)) : true
     error_message = "Optional attribute 'client_certificate_id' of 'api_gateway_stages' must be a string if specified with length > 1."
   }
 
   // documentation_version
   validation {
-    condition     = var.api_gateway_stages != [] ? !can(index([for stage in var.api_gateway_stages : length(lookup(stage, "documentation_version")) > 1], false)) : true
+    condition     = var.api_gateway_stages != [] ? ! can(index([for stage in var.api_gateway_stages : length(lookup(stage, "documentation_version")) > 1], false)) : true
     error_message = "Optional attribute 'documentation_version' of 'api_gateway_stages' must be a string if specified with length > 1."
   }
 
   // xray_tracing_enabled
   validation {
-    condition     = var.api_gateway_stages != [] ? !can(index([for stage in var.api_gateway_stages : can(lookup(stage, "xray_tracing_enabled")) ? can(tobool(lookup(stage, "xray_tracing_enabled"))) : true], false)) : true
+    condition     = var.api_gateway_stages != [] ? ! can(index([for stage in var.api_gateway_stages : can(lookup(stage, "xray_tracing_enabled")) ? can(tobool(lookup(stage, "xray_tracing_enabled"))) : true], false)) : true
     error_message = "Optional attribute 'xray_tracing_enabled' of 'api_gateway_stages' must be 'true' or 'false'."
   }
 
@@ -221,54 +221,134 @@ variable "api_gateway_stages" {
 variable "api_gateway_models" {
   description = "AWS API Gateway models."
   default     = []
-  /** 
+  type        = set(any)
+  /*
   type = list(object({
       name         = string (required) - The name of the model.
       description  = string (optional) - The description of the model.
       content_type = string (optional) - The content_type of the model. defaults to "application/json"
-      schema       = string (optional) - The schea of the model.
+      schema       = string (required) - The schea of the model. defaults to "{\"type\":\"object\"}"
   }))
   */
+
+  // name
   validation {
-    condition     = var.api_gateway_models != [] ? ! can(index([for model in var.api_gateway_models : length(model.name) > 1], false)) : true
-    error_message = "The api_gateway_models variable is optional, but if specified, it must contain a string attribute called 'name' with length > 1."
+    condition     = var.api_gateway_models != [] ? ! can(index([for model in var.api_gateway_models : can(lookup(model, "name")) ? length(lookup(model, "name")) > 1 : false], false)) : true
+    error_message = "If the set of 'api_gateway_models' is provided, each value must contain an attribute 'name' with length > 1."
+  }
+
+  // description
+  validation {
+    condition     = var.api_gateway_models != [] ? ! can(index([for model in var.api_gateway_models : length(lookup(model, "description")) > 1], false)) : true
+    error_message = "Optional attribute 'description' of 'api_gateway_models' must be a string if specified with length > 1."
+  }
+
+  // content_type
+  validation {
+    condition     = var.api_gateway_models != [] ? ! can(index([for model in var.api_gateway_models : length(lookup(model, "content_type")) > 1], false)) : true
+    error_message = "Optional attribute 'content_type' of 'api_gateway_models' must be a string if specified with length > 1."
+  }
+
+  // schema
+  validation {
+    condition     = var.api_gateway_models != [] ? ! can(index([for model in var.api_gateway_models : length(lookup(model, "schema")) > 1], false)) : true
+    error_message = "Optional attribute 'schema' of 'api_gateway_models' must be a string if specified with length > 1."
   }
 }
 
 variable "api_keys" {
   description = "AWS API Gateway API Keys."
   default     = []
+  type        = set(any)
+  /*
   type = list(object({
-    key_name        = any # "The name of the API key."
-    key_description = any # "The API key description. Defaults to \"Managed by Terraform\"."
-    enabled         = any # "Whether the API Key is enabled"
-    value           = any # "The value of the key (if not auto generated)"
+    key_name        = string (required) - The name of the API key.
+    key_description = string (optional) - The API key description. Defaults to \"Managed by Terraform\".
+    enabled         = string (optional) - Whether the API Key is enabled
+    value           = string (optional) - The value of the key (if not auto generated)
   }))
+  */
+
+  // key_name
+  validation {
+    condition     = var.api_keys != [] ? ! can(index([for api_key in var.api_keys : can(lookup(api_key, "key_name")) ? length(lookup(api_key, "key_name")) > 1 : false], false)) : true
+    error_message = "If the set of 'api_keys' is provided, each value must contain an attribute 'key_name' with length > 1."
+  }
+
+  // key_description
+  validation {
+    condition     = var.api_keys != [] ? ! can(index([for api_key in var.api_keys : length(lookup(api_key, "key_description")) > 1], false)) : true
+    error_message = "Optional attribute 'key_description' of 'api_keys' must be a string if specified with length > 1."
+  }
+
+  // enabled
+  validation {
+    condition     = var.api_keys != [] ? ! can(index([for api_key in var.api_keys : can(lookup(api_key, "enabled")) ? can(tobool(lookup(api_key, "enabled"))) : true], false)) : true
+    error_message = "Optional attribute 'enabled' of 'api_keys' must be 'true' or 'false'."
+  }
+
+  // value
+  validation {
+    condition     = var.api_keys != [] ? ! can(index([for api_key in var.api_keys : length(lookup(api_key, "value")) > 1], false)) : true
+    error_message = "Optional attribute 'value' of 'api_keys' must be a string if specified with length > 1."
+  }
 }
 
 variable "vpc_links" {
   description = "AWS API Gateway VPC links."
   default     = []
+  type        = set(any)
+  /*
   type = list(object({
-    vpc_link_name        = any # "The name used to label and identify the VPC link."
-    vpc_link_description = any # "The description of the VPC link."
-    target_arns          = any # "The list of network load balancer arns in the VPC targeted by the VPC link. Currently AWS only supports 1 target."
+    vpc_link_name        = string (required) - The name used to label and identify the VPC link.
+    vpc_link_description = string (optional) - The description of the VPC link.
+    target_arns          = set(string) - The list of network load balancer arns in the VPC targeted by the VPC link. Currently AWS only supports 1 target.
   }))
+  */
+
+  // vpc_link_name
+  validation {
+    condition     = var.vpc_links != [] ? ! can(index([for vpc_link in var.vpc_links : can(lookup(vpc_link, "vpc_link_name")) ? length(lookup(vpc_link, "vpc_link_name")) > 1 : false], false)) : true
+    error_message = "If the set of 'vpc_links' is provided, each value must contain an attribute 'vpc_link_name' with length > 1."
+  }
+
+  // vpc_link_description
+  validation {
+    condition     = var.vpc_links != [] ? ! can(index([for vpc_link in var.vpc_links : length(lookup(vpc_link, "vpc_link_description")) > 1], false)) : true
+    error_message = "Optional attribute 'vpc_link_description' of 'vpc_links' must be a string if specified with length > 1."
+  }
+
+  // target_arns
+  validation {
+    condition     = var.vpc_links != [] ? ! can(index([for vpc_link in var.vpc_links : length(try(toset(vpc_link.target_arns), [])) == 1], false)) : true
+    error_message = "Optional attribute 'target_arns' of 'vpc_links' must be a set of at least one string."
+  }
 }
 
 variable "authorizer_definitions" {
   description = "AWS API Gateway authorizer."
+  default     = []
+  type        = set(any)
+  
+  /*
   type = list(object({
-    authorizer_name                  = any # "The name of the authorizer."
-    authorizer_uri                   = any # "The authorizer's Uniform Resource Identifier (URI). This must be a well-formed Lambda function URI in the form of arn:aws:apigateway:{region}:lambda:path/{service_api}, e.g. arn:aws:apigateway:us-west-2:lambda:path/2015-03-31/functions/arn:aws:lambda:us-west-2:012345678912:function:my-function/invocations."
-    identity_source                  = any # "The source of the identity in an incoming request. Defaults to method.request.header.Authorization. For REQUEST type, this may be a comma-separated list of values, including headers, query string parameters and stage variables - e.g. \"method.request.header.SomeHeaderName,method.request.querystring.SomeQueryStringName\"."
-    identity_validation_expression   = any # "A validation expression for the incoming identity. For TOKEN type, this value should be a regular expression. The incoming token from the client is matched against this expression, and will proceed if the token matches. If the token doesn't match, the client receives a 401 Unauthorized response."
-    authorizer_result_ttl_in_seconds = any # "The TTL of cached authorizer results in seconds. Defaults to 300."
-    authorizer_credentials           = any
-    authorizer_type                  = any # "The type of the authorizer. Possible values are TOKEN for a Lambda function using a single authorization token submitted in a custom header, REQUEST for a Lambda function using incoming request parameters, or COGNITO_USER_POOLS for using an Amazon Cognito user pool. Defaults to TOKEN."
-    authorization                    = any # "The type of authorization used for the method (NONE, CUSTOM, AWS_IAM, COGNITO_USER_POOLS)."
-    provider_arns                    = any # "Required for type COGNITO_USER_POOLS) A list of the Amazon Cognito user pool ARNs. Each element is of this format: arn:aws:cognito-idp:{region}:{account_id}:userpool/{user_pool_id}."
+    authorizer_name                  = string (required) - The name of the authorizer.
+    authorizer_uri                   = string (required) - The authorizer's Uniform Resource Identifier (URI). This must be a well-formed Lambda function URI in the form of arn:aws:apigateway:{region}:lambda:path/{service_api}, e.g. arn:aws:apigateway:us-west-2:lambda:path/2015-03-31/functions/arn:aws:lambda:us-west-2:012345678912:function:my-function/invocations.
+    identity_source                  = string (optional) - The source of the identity in an incoming request. Defaults to method.request.header.Authorization. For REQUEST type, this may be a comma-separated list of values, including headers, query string parameters and stage variables - e.g. \"method.request.header.SomeHeaderName,method.request.querystring.SomeQueryStringName\".
+    identity_validation_expression   = string (optional) - A validation expression for the incoming identity. For TOKEN type, this value should be a regular expression. The incoming token from the client is matched against this expression, and will proceed if the token matches. If the token doesn't match, the client receives a 401 Unauthorized response.
+    authorizer_result_ttl_in_seconds = number (optional) - The TTL of cached authorizer results in seconds. Defaults to 300.
+    authorizer_credentials           = string (optional) 
+    authorizer_type                  = string (optional) The type of the authorizer. Possible values are TOKEN for a Lambda function using a single authorization token submitted in a custom header, REQUEST for a Lambda function using incoming request parameters, or COGNITO_USER_POOLS for using an Amazon Cognito user pool. Defaults to TOKEN.
+    authorization                    = string (optional) The type of authorization used for the method (NONE, CUSTOM, AWS_IAM, COGNITO_USER_POOLS).
+    provider_arns                    = string (optional) Required for type COGNITO_USER_POOLS) A list of the Amazon Cognito user pool ARNs. Each element is of this format: arn:aws:cognito-idp:{region}:{account_id}:userpool/{user_pool_id}.
   }))
+  */
+
+  // authoizer_name
+  validation {
+    condition     = var.authorizer_definitions != [] ? ! can(index([for auth in var.authorizer_definitions : can(lookup(auth, "authorizer_name")) ? length(lookup(auth, "authorizer_name")) > 1 : false], false)) : true
+    error_message = "If the set of 'authorizer_definitions' is provided, each value must contain an attribute 'authorizer_name' with length > 1."
+  }
 }
 
 variable "api_gateway_methods" {

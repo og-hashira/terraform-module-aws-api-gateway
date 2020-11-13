@@ -15,48 +15,74 @@ api_gateway = {
 
 # api_gateway_deployment = {
 #   stage_name        = "afasdf"
-  # stage_description = "This is a default description"
-  # description       = "This is a default description"
+# stage_description = "This is a default description"
+# description       = "This is a default description"
 #   variables         = null
 # }
 
 api_gateway_stages = [
-    {
-      stage_name            = "asdf"
-      # stage_description     = null
-      stage_variables       = {}
-      cache_cluster_enabled = true
-      # cache_cluster_size    = 0.5
-      client_certificate_id = null
-      # documentation_version = "asdf"
-      # xray_tracing_enabled  = true
-      # access_log_settings = [
-      #   # {
-      #   #   destination_arn = "blah"
-      #   #   format          = "blah2"
-      #   # }
-      # ]
-    },
-    # {
-    #   stage_name            = ""
-    #   stage_description     = "The description of the stage."
-    #   stage_variables       = {}
-    #   cache_cluster_enabled = false
-    #   cache_cluster_size    = 0.5
-    #   client_certificate_id = ""
-    #   documentation_version = ""
-    #   xray_tracing_enabled  = true
-    #   # access_log_settings = [
-    #   #   {
-    #   #     destination_arn = "blah"
-    #   #     format          = "blah2"
-    #   #   }
-    #   # ]
-    # },
-#     {
-#       stage_name = "hello"
-#       }
+  {
+    stage_name = "asdf"
+    # stage_description     = null
+    stage_variables       = {}
+    cache_cluster_enabled = true
+    # cache_cluster_size    = 0.5
+    client_certificate_id = null
+    # documentation_version = "asdf"
+    # xray_tracing_enabled  = true
+    # access_log_settings = [
+    #   # {
+    #   #   destination_arn = "blah"
+    #   #   format          = "blah2"
+    #   # }
+    # ]
+  },
+  # {
+  #   stage_name            = ""
+  #   stage_description     = "The description of the stage."
+  #   stage_variables       = {}
+  #   cache_cluster_enabled = false
+  #   cache_cluster_size    = 0.5
+  #   client_certificate_id = ""
+  #   documentation_version = ""
+  #   xray_tracing_enabled  = true
+  #   # access_log_settings = [
+  #   #   {
+  #   #     destination_arn = "blah"
+  #   #     format          = "blah2"
+  #   #   }
+  #   # ]
+  # },
+  #     {
+  #       stage_name = "hello"
+  #       }
 ]
+
+# api_gateway_models = [
+#   {
+#     name = "asdf"
+#         description  = {}
+#             #     content_type = ""
+#     #     schema       = ""
+#   }
+# ]
+
+# api_keys = [
+#   {
+#     key_name        = "dfdfd"
+# #     key_description = "KeyDesc"
+#     enabled         = true
+# #     value           = ""
+#   }
+# ]
+
+# vpc_links = [
+#   {
+#     vpc_link_name = "asdf"
+#     vpc_link_description  = "desc"
+#     target_arns = ["arn"]
+#   }
+# ]
 
 authorizer_definitions = [
   {
@@ -257,30 +283,3 @@ api_gateway_methods = [
     }
   }
 ]
-
-api_gateway_models = [
-  {
-    name = "asdfasdf"
-    #     description  = "model1 desc"
-    #     content_type = ""
-    #     schema       = ""
-  }
-]
-
-# api_keys = [
-#   {
-#     key_name        = "KeyName"
-#     key_description = "KeyDesc"
-#     enabled         = true
-#     value           = ""
-#   }
-# ]
-
-# vpc_links = [
-#   {
-#     vpc_link_name         = "blah"
-#     vpc_link_description  = "desc"
-#     target_arns           = ["arn"]
-#   }
-# ]
-

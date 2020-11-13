@@ -3,11 +3,11 @@ provider "aws" {
 }
 
 locals {
-  
+
   ##################
   ## Set defaults ##
   ##################
-  
+
   default_managedby_description = "Managed by the P&G AWS API Gateway Terraform Module https://github.com/procter-gamble/terraform-module-aws-api-gateway.git"
 
   // api_gateway
@@ -58,9 +58,28 @@ locals {
   }
   api_gateway_models = var.api_gateway_models != null ? [for model in var.api_gateway_models : merge(local.api_gateway_model_defaults, model)] : null
 
+  // api_keys
+  api_keys_defaults = {
+    // key_name         = string (required)
+    key_description = local.default_managedby_description
+    enabled         = true
+    value           = null
+  }
+  api_gatewapi_keys = var.api_keys != null ? [for api_key in var.api_keys : merge(local.api_keys_defaults, api_key)] : null
+
+  // vpc_links
+  vpc_links_defaults = {
+    // vpc_link_name     = string (required)
+    vpc_link_description = local.default_managedby_description
+    vpc_link_name        = "asdf"
+    // target_arns       = ["arn"]
+  }
+  vpc_links = var.vpc_links != null ? [for vpc_link in var.vpc_links : merge(local.vpc_links_defaults, vpc_link)] : null
+
   ###########################
   ## Resource path parsing ##
   ###########################
+  /*
   paths = [for method in var.api_gateway_methods : method.resource_path]
 
   paths_as_segments = [for path in local.paths : split("/", path)]
@@ -72,7 +91,7 @@ locals {
   join("/", slice(path_segments, 0, end_index))]])))
 
   length_paths_map = (transpose({ for path in local.unique_paths : path => [length(split("/", path))] }))
-  
+
   length_path_segments_map = ({ for quantity, paths in local.length_paths_map : quantity => [for path in paths : split("/", path)] })
 
   max_number_of_levels = length(local.length_path_segments_map)
@@ -91,6 +110,7 @@ locals {
   ## Authorizor mapping ##
   ########################
   authorizers = zipmap([for auth in var.authorizer_definitions : auth.authorizer_name], aws_api_gateway_authorizer.default[*]["id"])
+*/
 }
 
 # Resource    : API Gateway 
@@ -119,7 +139,7 @@ resource aws_api_gateway_rest_api default {
 # Resource    : Api Gateway Client Certificate
 # Description : Terraform resource to create Api Gateway Client Certificate on AWS.
 resource aws_api_gateway_client_certificate default {
-  count       = can(local.api_gateway.api_gateway_client_cert_enabled) ? 1 : 0
+  count = can(local.api_gateway.api_gateway_client_cert_enabled) ? 1 : 0
 
   description = local.api_gateway.api_gateway_client_cert_description
   tags        = var.tags
@@ -127,7 +147,7 @@ resource aws_api_gateway_client_certificate default {
 
 # # Resource    : Api Gateway Custom Domain Name
 # # Description : Terraform resource to create Api Gateway Custom Domain on AWS.
-# resource "aws_api_gateway_domain_name" "api_domain" {
+# resource aws_api_gateway_domain_name api_domain {
 #   count = length(local.api_gateway.custom_domain) > 0 ? 1 : 0
 
 #   certificate_arn = module.acm_certificate.arn[count.index]
@@ -136,7 +156,7 @@ resource aws_api_gateway_client_certificate default {
 
 # # Resource    : Api Gateway Base Path Mapping
 # # Description : Terraform resource to create Api Gateway base path mapping on AWS.
-# resource "aws_api_gateway_base_path_mapping" "test" {
+# resource aws_api_gateway_base_path_mapping test {
 #   count      = length(local.api_gateway.custom_domain) > 0 ? 1 : 0
 #   depends_on = [aws_api_gateway_deployment.default]
 
@@ -165,8 +185,8 @@ resource aws_api_gateway_deployment default {
 resource aws_api_gateway_stage default {
   count = local.api_gateway_deployment != null ? length(local.api_gateway_stages) : 0
 
-  rest_api_id   = aws_api_gateway_rest_api.default.*.id[0]
-  deployment_id = aws_api_gateway_deployment.default.*.id[0]
+  rest_api_id           = aws_api_gateway_rest_api.default.*.id[0]
+  deployment_id         = aws_api_gateway_deployment.default.*.id[0]
   stage_name            = element(local.api_gateway_stages, count.index).stage_name
   cache_cluster_enabled = element(local.api_gateway_stages, count.index).cache_cluster_enabled
   cache_cluster_size    = element(local.api_gateway_stages, count.index).cache_cluster_size
@@ -187,17 +207,42 @@ resource aws_api_gateway_stage default {
   tags = var.tags
 }
 
-# # Resource    : Api Gateway Model
-# # Description : Terraform resource to create Api Gateway model on AWS.
-# resource "aws_api_gateway_model" "default" {
-#   count = length(local.api_gateway_models)
+# Resource    : Api Gateway Model
+# Description : Terraform resource to create Api Gateway model on AWS.
+resource aws_api_gateway_model default {
+  count = length(local.api_gateway_models)
 
-#   rest_api_id  = aws_api_gateway_rest_api.default.*.id[0]
-#   name         = element(local.api_gateway_models, count.index).name
-#   description  = element(local.api_gateway_models, count.index).description
-#   content_type = element(local.api_gateway_models, count.index).content_type
-#   schema       = element(local.api_gateway_models, count.index).schema
-# }
+  rest_api_id  = aws_api_gateway_rest_api.default.*.id[0]
+  name         = element(local.api_gateway_models, count.index).name
+  description  = element(local.api_gateway_models, count.index).description
+  content_type = element(local.api_gateway_models, count.index).content_type
+  schema       = element(local.api_gateway_models, count.index).schema
+}
+
+# Resource    : Api Gateway Api Key
+# Description : Terraform resource to create Api Gateway Api Key on AWS.
+resource aws_api_gateway_api_key default {
+  count = length(local.api_keys)
+
+  name        = element(local.api_keys, count.index).key_name
+  description = length(element(local.api_keys, count.index).key_description) > 0 ? element(local.api_keys, count.index).key_description : ""
+  enabled     = element(local.api_keys, count.index).enabled
+  value       = length(element(local.api_keys, count.index).value) > 0 ? element(local.api_keys, count.index).value : null
+
+  tags = var.tags
+}
+
+# Resource    : Api Gateway VPC Link
+# Description : Terraform resource to create Api Gateway VPC Link on AWS.
+resource aws_api_gateway_vpc_link default {
+  count = length(local.vpc_links)
+
+  name        = element(local.vpc_links, count.index).vpc_link_name
+  description = length(element(local.vpc_links, count.index).vpc_link_description) > 0 ? element(local.vpc_links, count.index).vpc_link_description : ""
+  target_arns = element(local.vpc_links, count.index).target_arns
+
+  tags = var.tags
+}
 
 # # Module      : Api Gateway Authorizer
 # # Description : Terraform module to create Api Gateway Authorizer resource on AWS.
@@ -384,29 +429,4 @@ resource aws_api_gateway_stage default {
 #     aws_api_gateway_method_response.options_200,
 #     aws_api_gateway_integration.options_integration,
 #   ]
-# }
-
-# # Module      : Api Gateway Api Key
-# # Description : Terraform module to create Api Gateway Api Key resource on AWS.
-# resource "aws_api_gateway_api_key" "default" {
-#   count = length(var.api_keys)
-
-#   name        = element(var.api_keys, count.index).key_name
-#   description = length(element(var.api_keys, count.index).key_description) > 0 ? element(var.api_keys, count.index).key_description : ""
-#   enabled     = element(var.api_keys, count.index).enabled
-#   value       = length(element(var.api_keys, count.index).value) > 0 ? element(var.api_keys, count.index).value : null
-
-#   tags = var.tags
-# }
-
-# # Module      : Api Gateway VPC Link
-# # Description : Terraform module to create Api Gateway VPC Link resource on AWS.
-# resource "aws_api_gateway_vpc_link" "default" {
-#   count = length(var.vpc_links)
-
-#   name        = element(var.vpc_links, count.index).vpc_link_name
-#   description = length(element(var.vpc_links, count.index).vpc_link_description) > 0 ? element(var.vpc_links, count.index).vpc_link_description : ""
-#   target_arns = element(var.vpc_links, count.index).target_arns
-
-#   tags = var.tags
-# }
+# 
