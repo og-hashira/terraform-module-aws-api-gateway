@@ -21,7 +21,7 @@ locals {
     policy                              = null
     custom_domain                       = null
     hosted_zone                         = null
-    api_gateway_client_cert_enabled     = null
+    api_gateway_client_cert_enabled     = false
     api_gateway_client_cert_description = local.default_managedby_description
   }
   api_gateway = merge(local.api_gateway_defaults, var.api_gateway)
@@ -38,8 +38,8 @@ locals {
   // api_gateway_stages defaults
   api_gateway_stage_defaults = {
     // stage_name          = string
-    access_log_settings   = null
-    cache_cluster_enabled = null
+    access_log_settings   = []
+    cache_cluster_enabled = false
     cache_cluster_size    = null
     client_certificate_id = null
     documentation_version = null
@@ -87,12 +87,35 @@ locals {
     authorizer_credentials           = null
     provider_arns                    = []
   }
-  authorizer_definitions = var.authorizer_definitions != null ? [for auth in var.authorizer_definitions : merge(local.authorizer_definitions, auth)] : null
+  authorizer_definitions = var.authorizer_definitions != null ? [for auth in var.authorizer_definitions : merge(local.authorizer_definitions_defaults, auth)] : null
+
+  api_gateway_methods_defaults = {
+    // resource_path        = string (required)
+    // http_method          = string (required)
+    api_key_required     = false
+    request_models       = { "application/json" = "Empty" }
+    request_validator_id = null
+    request_parameters   = null
+    authorization        = "NONE"
+    authorizer_name      = null
+    authorizer_id        = null
+    authorization_scopes = null
+
+    // map
+    integration = {
+      http_method = "POST"
+    }
+
+    // map
+    gateway_method_response = null
+  }
+  api_gateway_methods = var.api_gateway_methods != null ? [for method in var.api_gateway_methods : merge(local.api_gateway_methods_defaults, method)] : null
+
 
   ###########################
   ## Resource path parsing ##
   ###########################
-  
+
   paths = [for method in local.api_gateway_methods : method.resource_path]
 
   paths_as_segments = [for path in local.paths : split("/", path)]
@@ -107,11 +130,11 @@ locals {
 
   length_path_segments_map = ({ for quantity, paths in local.length_paths_map : quantity => [for path in paths : split("/", path)] })
 
-  max_number_of_levels = length(local.length_path_segments_map)
+  max_number_of_levels = can(local.length_path_segments_map) ? length(local.length_path_segments_map) : 0
 
   resource_method_map = (
     merge(
-      zipmap(flatten(local.length_paths_map[1]), values(aws_api_gateway_resource.first_paths)[*]["id"]),
+      local.max_number_of_levels > 0 ? zipmap(flatten(local.length_paths_map[1]), values(aws_api_gateway_resource.first_paths)[*]["id"]) : {},
       local.max_number_of_levels > 1 ? zipmap(flatten(local.length_paths_map[2]), values(aws_api_gateway_resource.second_paths)[*]["id"]) : {},
       local.max_number_of_levels > 2 ? zipmap(flatten(local.length_paths_map[3]), values(aws_api_gateway_resource.third_paths)[*]["id"]) : {},
       local.max_number_of_levels > 3 ? zipmap(flatten(local.length_paths_map[4]), values(aws_api_gateway_resource.fourth_paths)[*]["id"]) : {},
@@ -119,11 +142,10 @@ locals {
     )
   )
 
-  ########################
-  ## Authorizor mapping ##
-  ########################
+  ###################################
+  ## Authorizor name to ID mapping ##
+  ###################################
   authorizers = zipmap([for auth in local.authorizer_definitions : auth.authorizer_name], aws_api_gateway_authorizer.default[*]["id"])
-
 }
 
 # Resource    : API Gateway 
@@ -152,7 +174,7 @@ resource aws_api_gateway_rest_api default {
 # Resource    : Api Gateway Client Certificate
 # Description : Terraform resource to create Api Gateway Client Certificate on AWS.
 resource aws_api_gateway_client_certificate default {
-  count = can(local.api_gateway.api_gateway_client_cert_enabled) ? 1 : 0
+  count = local.api_gateway.api_gateway_client_cert_enabled == true ? 1 : 0
 
   description = local.api_gateway.api_gateway_client_cert_description
   tags        = var.tags
@@ -203,14 +225,14 @@ resource aws_api_gateway_stage default {
   stage_name            = element(local.api_gateway_stages, count.index).stage_name
   cache_cluster_enabled = element(local.api_gateway_stages, count.index).cache_cluster_enabled
   cache_cluster_size    = element(local.api_gateway_stages, count.index).cache_cluster_size
-  client_certificate_id = length(element(local.api_gateway_stages, count.index).client_certificate_id) > 0 ? element(local.api_gateway_stages, count.index).client_certificate_id : (local.api_gateway.api_gateway_client_cert_enabled ? aws_api_gateway_client_certificate.default.*.id[0] : "")
+  client_certificate_id = element(local.api_gateway_stages, count.index).client_certificate_id != null ? element(local.api_gateway_stages, count.index).client_certificate_id : (local.api_gateway.api_gateway_client_cert_enabled ? aws_api_gateway_client_certificate.default.*.id[0] : "")
   description           = element(local.api_gateway_stages, count.index).stage_description
   documentation_version = element(local.api_gateway_stages, count.index).documentation_version
   variables             = element(local.api_gateway_stages, count.index).stage_variables
   xray_tracing_enabled  = element(local.api_gateway_stages, count.index).xray_tracing_enabled
 
   dynamic "access_log_settings" {
-    for_each = element(local.api_gateway_stages, count.index).access_log_settings
+    for_each = can(lookup(element(local.api_gateway_stages, count.index), "access_log_settings")) ? lookup(element(local.api_gateway_stages, count.index), "access_log_settings") : []
     content {
       destination_arn = access_log_settings.value["destination_arn"]
       format          = access_log_settings.value["format"]
@@ -276,7 +298,7 @@ resource aws_api_gateway_authorizer default {
 # Resource    : Api Gateway Resources (curently supporting up to 5 nested levels)
 # Description : Terraform resource to create Api Gateway Resources on AWS
 resource aws_api_gateway_resource first_paths {
-  for_each = toset(flatten(local.length_path_segments_map[1]))
+  for_each = local.max_number_of_levels > 0 ? toset(flatten(local.length_path_segments_map[1])) : []
 
   rest_api_id = aws_api_gateway_rest_api.default.*.id[0]
   parent_id   = aws_api_gateway_rest_api.default.*.root_resource_id[0]
@@ -315,22 +337,22 @@ resource aws_api_gateway_resource fifth_paths {
   path_part   = each.value.segment
 }
 
-# # Module      : Api Gateway Method
-# # Description : Terraform module to create Api Gateway Method resource on AWS.
-# resource "aws_api_gateway_method" "default" {
-#   count = length(var.api_gateway_methods)
+# Module      : Api Gateway Method
+# Description : Terraform module to create Api Gateway Method resource on AWS.
+resource aws_api_gateway_method default {
+  count = length(local.api_gateway_methods)
 
-#   rest_api_id          = aws_api_gateway_rest_api.default.*.id[0]
-#   resource_id          = lookup(local.resource_method_map, element(var.api_gateway_methods, count.index).resource_path)
-#   http_method          = element(var.api_gateway_methods, count.index).http_method
-#   authorization        = length(element(var.api_gateway_methods, count.index).authorization) > 0 ? element(var.api_gateway_methods, count.index).authorization : "NONE"
-#   authorizer_id        = length(element(var.api_gateway_methods, count.index).authorizer_uri) > 0 ? element(var.api_gateway_methods, count.index).authorizer_uri : length(element(var.api_gateway_methods, count.index).authorizer_name) > 0 ? lookup(local.authorizers, element(var.api_gateway_methods, count.index).authorizer_name, null) : null
-#   authorization_scopes = length(element(var.api_gateway_methods, count.index).authorization_scope) > 0 ? element(var.api_gateway_methods, count.index).authorization_scope : null
-#   api_key_required     = element(var.api_gateway_methods, count.index).api_key_required
-#   request_models       = length(element(var.api_gateway_methods, count.index).request_models) > 0 ? element(var.api_gateway_methods, count.index).request_models : { "application/json" = "Empty" }
-#   request_validator_id = length(element(var.api_gateway_methods, count.index).request_validator_id) > 0 ? element(var.api_gateway_methods, count.index).request_validator_id : null
-#   request_parameters   = length(element(var.api_gateway_methods, count.index).integration.integration_request.request_parameters) > 0 ? element(var.api_gateway_methods, count.index).integration.integration_request.request_parameters : {}
-# }
+  rest_api_id          = aws_api_gateway_rest_api.default.*.id[0]
+  resource_id          = lookup(local.resource_method_map, element(local.api_gateway_methods, count.index).resource_path)
+  http_method          = element(local.api_gateway_methods, count.index).http_method
+  authorization        = element(local.api_gateway_methods, count.index).authorization
+  authorizer_id        = element(local.api_gateway_methods, count.index).authorizer_id != null ? element(local.api_gateway_methods, count.index).authorizer_id : element(local.api_gateway_methods, count.index).authorizer_name != null ? lookup(local.authorizers, element(local.api_gateway_methods, count.index).authorizer_name, null) : null
+  authorization_scopes = element(local.api_gateway_methods, count.index).authorization_scopes
+  api_key_required     = element(local.api_gateway_methods, count.index).api_key_required
+  request_models       = element(local.api_gateway_methods, count.index).request_models
+  request_validator_id = element(local.api_gateway_methods, count.index).request_validator_id
+  request_parameters   = element(local.api_gateway_methods, count.index).request_parameters
+}
 
 # resource "aws_api_gateway_method" "options_method" {
 #   count = length(var.api_gateway_methods)

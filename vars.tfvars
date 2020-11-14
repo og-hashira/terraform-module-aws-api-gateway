@@ -17,46 +17,46 @@ api_gateway = {
 #   stage_name        = "afasdf"
 # stage_description = "This is a default description"
 # description       = "This is a default description"
-#   variables         = null
+#   variables         = {}
 # }
 
-api_gateway_stages = [
-  {
-    stage_name = "asdf"
-    # stage_description     = null
-    stage_variables       = {}
-    cache_cluster_enabled = true
-    # cache_cluster_size    = 0.5
-    client_certificate_id = null
-    # documentation_version = "asdf"
-    # xray_tracing_enabled  = true
-    # access_log_settings = [
-    #   # {
-    #   #   destination_arn = "blah"
-    #   #   format          = "blah2"
-    #   # }
-    # ]
-  },
-  # {
-  #   stage_name            = ""
-  #   stage_description     = "The description of the stage."
-  #   stage_variables       = {}
-  #   cache_cluster_enabled = false
-  #   cache_cluster_size    = 0.5
-  #   client_certificate_id = ""
-  #   documentation_version = ""
-  #   xray_tracing_enabled  = true
-  #   # access_log_settings = [
-  #   #   {
-  #   #     destination_arn = "blah"
-  #   #     format          = "blah2"
-  #   #   }
-  #   # ]
-  # },
-  #     {
-  #       stage_name = "hello"
-  #       }
-]
+# api_gateway_stages = [
+#   {
+#     stage_name = "asdf"
+#     # stage_description     = null
+#     stage_variables       = {}
+#     cache_cluster_enabled = true
+#     # cache_cluster_size    = 0.5
+#     client_certificate_id = null
+# documentation_version = "asdf"
+# xray_tracing_enabled  = true
+# access_log_settings = [
+#   # {
+#   #   destination_arn = "blah"
+#   #   format          = "blah2"
+#   # }
+# ]
+# },
+# {
+#   stage_name            = ""
+#   stage_description     = "The description of the stage."
+#   stage_variables       = {}
+#   cache_cluster_enabled = false
+#   cache_cluster_size    = 0.5
+#   client_certificate_id = ""
+#   documentation_version = ""
+#   xray_tracing_enabled  = true
+#   # access_log_settings = [
+#   #   {
+#   #     destination_arn = "blah"
+#   #     format          = "blah2"
+#   #   }
+#   # ]
+# },
+#     {
+#       stage_name = "hello"
+#       }
+# ]
 
 # api_gateway_models = [
 #   {
@@ -84,17 +84,17 @@ api_gateway_stages = [
 #   }
 # ]
 
-# authorizer_definitions = [
-#   {
-#     authorizer_name                  = "pingFedAuth"
-#     authorizer_uri                   = "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:459235286243:function:my-authorizor-lambda/invocations"
-#     # identity_source                  = ""
-#     # identity_validation_expression   = ""
-#     # authorizer_result_ttl_in_seconds = 700
-#     # authorizer_type                  = "TOKEN"
-#     # authorizer_credentials           = ""
-#     provider_arns                    = []
-#   },
+authorizer_definitions = [
+  {
+    authorizer_name                  = "pingFedAuth"
+    authorizer_uri                   = "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:459235286243:function:my-authorizor-lambda/invocations"
+    # identity_source                  = ""
+    # identity_validation_expression   = ""
+    # authorizer_result_ttl_in_seconds = 700
+    # authorizer_type                  = "TOKEN"
+    # authorizer_credentials           = ""
+    provider_arns                    = []
+  },
 #   {
 #     authorizer_name                  = "pingFedAuth2"
 #     authorizer_uri                   = "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:459235286243:function:my-authorizor-lambda/invocations"
@@ -105,179 +105,45 @@ api_gateway_stages = [
 #     # authorizer_credentials           = ""
 #     provider_arns                    = []
 #   }
-# ]
+]
 
 api_gateway_methods = [
   {
-    resource_path        = "blah"
-    http_method          = "POST"
-    api_key_required     = false
-    request_models       = {}
-    request_validator_id = ""
-    request_parameters   = {}
-    authorization        = ""
-    authorizer_name      = ""
-    authorizer_uri       = ""
-    authorization_scope  = []
-
-    integration = {
-      connection_type         = ""
-      connection_id           = ""
-      credentials             = ""
-      passthrough_behavior    = ""
-      cache_key_parameters    = []
-      cache_namespace         = ""
-      timeout_milliseconds    = ""
-      integration_http_method = ""
-      integration_type        = ""
-      uri                     = "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:459235286243:function:my-awesome-lambda/invocations"
-
-      integration_request = {
-        request_parameters       = {}
-        request_templates        = {}
-        request_content_handling = ""
-      }
-      integration_response = {
-        response_parameters       = {}
-        response_templates        = {}
-        response_content_handling = ""
-      }
-    }
-    gateway_method_response = {
-      status_code         = ""
-      response_type       = ""
-      response_models     = {}
-      response_template   = ""
-      response_parameters = {}
-    }
-  },
-  {
-    resource_path        = "bosh"
-    http_method          = "POST"
-    api_key_required     = false
-    request_models       = {}
-    request_validator_id = ""
-    request_parameters   = {}
-    authorization        = ""
-    authorizer_uri       = ""
-    authorizer_name      = ""
-    authorization_scope  = []
-
-    integration = {
-      connection_type         = ""
-      connection_id           = ""
-      credentials             = ""
-      passthrough_behavior    = ""
-      cache_key_parameters    = []
-      cache_namespace         = ""
-      timeout_milliseconds    = ""
-      integration_http_method = ""
-      integration_type        = ""
-      uri                     = "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:459235286243:function:my-awesome-lambda/invocations"
-
-      integration_request = {
-        request_parameters       = {}
-        request_templates        = {}
-        request_content_handling = ""
-      }
-      integration_response = {
-        response_parameters       = {}
-        response_templates        = {}
-        response_content_handling = ""
-      }
-    }
-    gateway_method_response = {
-      status_code         = ""
-      response_type       = ""
-      response_models     = {}
-      response_template   = ""
-      response_parameters = {}
-    }
-  },
-  {
-    resource_path        = "blah/ble/bre"
-    http_method          = "POST"
-    api_key_required     = false
-    request_models       = {}
-    request_validator_id = ""
-    request_parameters   = {}
-    authorization        = "CUSTOM"
-    authorizer_uri       = ""
-    authorizer_name      = "pingFedAuth2"
-    authorization_scope  = []
-
-    integration = {
-      connection_type         = ""
-      connection_id           = ""
-      credentials             = ""
-      passthrough_behavior    = ""
-      cache_key_parameters    = []
-      cache_namespace         = ""
-      timeout_milliseconds    = ""
-      integration_http_method = ""
-      integration_type        = ""
-      uri                     = "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:459235286243:function:my-awesome-lambda/invocations"
-
-      integration_request = {
-        request_parameters       = {}
-        request_templates        = {}
-        request_content_handling = ""
-      }
-      integration_response = {
-        response_parameters       = {}
-        response_templates        = {}
-        response_content_handling = ""
-      }
-    }
-    gateway_method_response = {
-      status_code         = ""
-      response_type       = ""
-      response_models     = {}
-      response_template   = ""
-      response_parameters = {}
-    }
-  },
-  {
-    resource_path        = "blah/ble/bre2"
-    http_method          = "POST"
-    api_key_required     = false
-    request_models       = {}
-    request_validator_id = ""
-    request_parameters   = {}
-    authorization        = "CUSTOM"
-    authorizer_uri       = ""
+    resource_path = "blah"
+    http_method   = "POST"
+    authorization = "CUSTOM"
     authorizer_name      = "pingFedAuth"
-    authorization_scope  = []
 
     integration = {
-      connection_type         = ""
-      connection_id           = ""
-      credentials             = ""
-      passthrough_behavior    = ""
-      cache_key_parameters    = []
-      cache_namespace         = ""
-      timeout_milliseconds    = ""
-      integration_http_method = ""
-      integration_type        = ""
+      http_method = "POST"
+      # integration_http_method = ""
+      # integration_type        = "AWS_PROXY"
+      # connection_type         = "INTERNET"
+      # connection_id           = "asdf"
       uri                     = "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:459235286243:function:my-awesome-lambda/invocations"
-
-      integration_request = {
-        request_parameters       = {}
-        request_templates        = {}
-        request_content_handling = ""
-      }
-      integration_response = {
-        response_parameters       = {}
-        response_templates        = {}
-        response_content_handling = ""
-      }
+      # credentials             = "asdf"
+      # request_parameters      = {blah = "blah"}
+      # request_templates       = {blah = "re"}
+      # passthrough_behavior    = "NEVERs"
+      # cache_key_parameters    = []
+      # cache_namespace         = "aa"
+      # content_handling        = "CONVERT_TO_TEXTs"
+      # timeout_milliseconds    = 3000
+      
+      #integration_responses = [
+      # {
+          #response_parameters = 
+          #response_templates = null
+          #content_handling = "CONVERT_TO_TEXT"
+        #}
+      #]
     }
-    gateway_method_response = {
-      status_code         = ""
-      response_type       = ""
-      response_models     = {}
-      response_template   = ""
-      response_parameters = {}
-    }
+    method_responses = [
+      {
+        #status_code         = ""
+        #response_models     = {blah = ""}
+      response_parameters = {blah = ""}
+      }
+    ]
   }
 ]
