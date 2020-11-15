@@ -86,64 +86,48 @@ api_gateway = {
 
 authorizer_definitions = [
   {
-    authorizer_name                  = "pingFedAuth"
-    authorizer_uri                   = "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:459235286243:function:my-authorizor-lambda/invocations"
+    authorizer_name = "pingFedAuth"
+    authorizer_uri  = "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:459235286243:function:my-authorizor-lambda/invocations"
     # identity_source                  = ""
     # identity_validation_expression   = ""
     # authorizer_result_ttl_in_seconds = 700
     # authorizer_type                  = "TOKEN"
     # authorizer_credentials           = ""
-    provider_arns                    = []
+    provider_arns = []
   },
-#   {
-#     authorizer_name                  = "pingFedAuth2"
-#     authorizer_uri                   = "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:459235286243:function:my-authorizor-lambda/invocations"
-#     # identity_source                  = ""
-#     # identity_validation_expression   = ""
-#     # authorizer_result_ttl_in_seconds = 55
-#     # authorizer_type                  = "REQUEST"
-#     # authorizer_credentials           = ""
-#     provider_arns                    = []
-#   }
+  #   {
+  #     authorizer_name                  = "pingFedAuth2"
+  #     authorizer_uri                   = "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:459235286243:function:my-authorizor-lambda/invocations"
+  #     # identity_source                  = ""
+  #     # identity_validation_expression   = ""
+  #     # authorizer_result_ttl_in_seconds = 55
+  #     # authorizer_type                  = "REQUEST"
+  #     # authorizer_credentials           = ""
+  #     provider_arns                    = []
+  #   }
 ]
 
 api_gateway_methods = [
   {
-    resource_path = "blah"
-    http_method   = "POST"
-    authorization = "CUSTOM"
-    authorizer_name      = "pingFedAuth"
+    resource_path   = "blah"
+    http_method     = "POST"
+    authorization   = "CUSTOM"
+    authorizer_name = "pingFedAuth"
 
     integration = {
-      http_method = "POST"
-      # integration_http_method = ""
-      # integration_type        = "AWS_PROXY"
-      # connection_type         = "INTERNET"
-      # connection_id           = "asdf"
-      uri                     = "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:459235286243:function:my-awesome-lambda/invocations"
-      # credentials             = "asdf"
-      # request_parameters      = {blah = "blah"}
-      # request_templates       = {blah = "re"}
-      # passthrough_behavior    = "NEVERs"
-      # cache_key_parameters    = []
-      # cache_namespace         = "aa"
-      # content_handling        = "CONVERT_TO_TEXTs"
-      # timeout_milliseconds    = 3000
-      
-      #integration_responses = [
-      # {
-          #response_parameters = 
-          #response_templates = null
-          #content_handling = "CONVERT_TO_TEXT"
-        #}
-      #]
+      http_method           = "POST"
+      uri                   = "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:459235286243:function:my-awesome-lambda/invocations"
     }
-    method_responses = [
-      {
-        #status_code         = ""
-        #response_models     = {blah = ""}
-      response_parameters = {blah = ""}
-      }
-    ]
+  },
+  {
+    resource_path   = "blah2"
+    http_method     = "POST"
+    authorization   = "CUSTOM"
+    authorizer_name = "pingFedAuth"
+
+    integration = {
+      http_method           = "POST"
+      uri                   = "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:459235286243:function:my-awesome-lambda/invocations"
+    }
   }
 ]

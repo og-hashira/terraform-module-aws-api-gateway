@@ -89,28 +89,13 @@ locals {
   }
   authorizer_definitions = var.authorizer_definitions != null ? [for auth in var.authorizer_definitions : merge(local.authorizer_definitions_defaults, auth)] : null
 
-  api_gateway_methods_defaults = {
-    // resource_path        = string (required)
-    // http_method          = string (required)
-    api_key_required     = false
-    request_models       = { "application/json" = "Empty" }
-    request_validator_id = null
-    request_parameters   = null
-    authorization        = "NONE"
-    authorizer_name      = null
-    authorizer_id        = null
-    authorization_scopes = null
-
-    // map
-    integration = {
-      http_method = "POST"
-    }
-
-    // map
-    gateway_method_response = null
-  }
-  api_gateway_methods = var.api_gateway_methods != null ? [for method in var.api_gateway_methods : merge(local.api_gateway_methods_defaults, method)] : null
-
+  api_gateway_methods = [for method in var.api_gateway_methods :
+    merge(var.api_gateway_method_default,
+      method,
+      { for key, value in var.api_gateway_method_default : key => merge(var.api_gateway_method_default.integration, method.integration, { for key, value in var.api_gateway_method_default.integration : key => merge(var.api_gateway_method_default.integration.integration_responses, method.integration.integration_responses) if key == "integration_responses" }) if key == "integration" },
+      { for key, value in var.api_gateway_method_default : key => merge(var.api_gateway_method_default.method_responses, method.method_responses) if key == "method_responses" }
+    )
+  ]
 
   ###########################
   ## Resource path parsing ##
@@ -148,6 +133,9 @@ locals {
   authorizers = zipmap([for auth in local.authorizer_definitions : auth.authorizer_name], aws_api_gateway_authorizer.default[*]["id"])
 }
 
+output blah {
+  value = local.api_gateway_methods
+}
 # Resource    : API Gateway 
 # Description : Terraform resource to create an API Gateway REST API on AWS.
 resource aws_api_gateway_rest_api default {
@@ -339,20 +327,20 @@ resource aws_api_gateway_resource fifth_paths {
 
 # Module      : Api Gateway Method
 # Description : Terraform module to create Api Gateway Method resource on AWS.
-resource aws_api_gateway_method default {
-  count = length(local.api_gateway_methods)
+# resource aws_api_gateway_method default {
+#   count = length(local.api_gateway_methods)
 
-  rest_api_id          = aws_api_gateway_rest_api.default.*.id[0]
-  resource_id          = lookup(local.resource_method_map, element(local.api_gateway_methods, count.index).resource_path)
-  http_method          = element(local.api_gateway_methods, count.index).http_method
-  authorization        = element(local.api_gateway_methods, count.index).authorization
-  authorizer_id        = element(local.api_gateway_methods, count.index).authorizer_id != null ? element(local.api_gateway_methods, count.index).authorizer_id : element(local.api_gateway_methods, count.index).authorizer_name != null ? lookup(local.authorizers, element(local.api_gateway_methods, count.index).authorizer_name, null) : null
-  authorization_scopes = element(local.api_gateway_methods, count.index).authorization_scopes
-  api_key_required     = element(local.api_gateway_methods, count.index).api_key_required
-  request_models       = element(local.api_gateway_methods, count.index).request_models
-  request_validator_id = element(local.api_gateway_methods, count.index).request_validator_id
-  request_parameters   = element(local.api_gateway_methods, count.index).request_parameters
-}
+#   rest_api_id          = aws_api_gateway_rest_api.default.*.id[0]
+#   resource_id          = lookup(local.resource_method_map, element(local.api_gateway_methods, count.index).resource_path)
+#   http_method          = element(local.api_gateway_methods, count.index).http_method
+#   authorization        = element(local.api_gateway_methods, count.index).authorization
+#   authorizer_id        = element(local.api_gateway_methods, count.index).authorizer_id != null ? element(local.api_gateway_methods, count.index).authorizer_id : element(local.api_gateway_methods, count.index).authorizer_name != null ? lookup(local.authorizers, element(local.api_gateway_methods, count.index).authorizer_name, null) : null
+#   authorization_scopes = element(local.api_gateway_methods, count.index).authorization_scopes
+#   api_key_required     = element(local.api_gateway_methods, count.index).api_key_required
+#   request_models       = element(local.api_gateway_methods, count.index).request_models
+#   request_validator_id = element(local.api_gateway_methods, count.index).request_validator_id
+#   request_parameters   = element(local.api_gateway_methods, count.index).request_parameters
+# }
 
 # resource "aws_api_gateway_method" "options_method" {
 #   count = length(var.api_gateway_methods)

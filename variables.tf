@@ -393,6 +393,59 @@ variable "authorizer_definitions" {
   }
 }
 
+variable "api_gateway_method_default" {
+  description = "AWS API Gateway methods default."
+
+  type = any
+  default = {
+    resource_path        = null
+    http_method          = null
+    authorizer_id        = null
+    authorization_scopes = null
+    api_key_required     = false
+    request_models       = null
+    request_validator_id = null
+    request_parameters   = null
+
+    authorization        = null
+    authorizer_id        = null
+    authorizer_name      = null
+    authorization_scopes = null
+
+    integration = {
+      http_method             = "POST"
+      integration_http_method = "POST"
+      type                    = "AWS_PROXY"
+      connection_type         = "INTERNET"
+      connection_id           = null
+      uri                     = null
+      credentials             = null
+      request_templates       = null
+      request_parameters      = null
+      passthrough_behavior    = null
+      cache_key_parameters    = null
+      cache_namespace         = null
+      content_handling        = null
+      timeout_milliseconds    = 29000
+      integration_response = {
+        http_method         = "POST"
+        status_code         = "200"
+        selection_pattern   = null
+        response_templates  = null
+        response_parameters = null
+        content_handling    = null
+      }
+    }
+    method_response = {
+      status_code         = "200"
+      response_type       = null
+      response_models     = null
+      response_template   = null
+      response_parameters = null
+    }
+  }
+}
+
 variable "api_gateway_methods" {
   description = "AWS API Gateway methods."
   default     = []
@@ -458,15 +511,15 @@ variable "api_gateway_methods" {
   }
 
   // http_method
-    validation {
-    condition     = (var.api_gateway_methods != [] ? 
-                      ! can(index(
-                                  # build an array of true/false values describing if the validation is passed for each record...  if 'false' found via the index function, return false
-                                  [for method in var.api_gateway_methods : can(lookup(method, "http_method")) ? 
-                                      contains(["GET", "POST", "PUT", "DELETE", "HEAD", "OPTIONS", "ANY"], lookup(method, "http_method")) :  # if can find http_method true
-                                      false] # Required so result should be false - http_method not found
-                                      , false)) # index function lookup value
-                      : true) # if var.api_gateway_methods == [] it wasn't passed at all.  Since this is optional, pass validation
+  validation {
+    condition = (var.api_gateway_methods != [] ?
+      ! can(index(
+        # build an array of true/false values describing if the validation is passed for each record...  if 'false' found via the index function, return false
+        [for method in var.api_gateway_methods : can(lookup(method, "http_method")) ?
+          contains(["GET", "POST", "PUT", "DELETE", "HEAD", "OPTIONS", "ANY"], lookup(method, "http_method")) : # if can find http_method true
+        false]                                                                                                  # Required so result should be false - http_method not found
+      , false))                                                                                                 # index function lookup value
+    : true)                                                                                                     # if var.api_gateway_methods == [] it wasn't passed at all.  Since this is optional, pass validation
     error_message = "Required attribute 'http_method' of 'api_gateway_methods' must be a string equal to GET, POST, PUT, DELETE, HEAD, OPTIONS, ANY."
   }
 
@@ -520,331 +573,331 @@ variable "api_gateway_methods" {
 
   // integration.http_method
   validation {
-    condition     = (var.api_gateway_methods != [] ? 
-                      ! can(index(
-                                  # build an array of true/false values describing if the validation is passed for each record...  if 'false' found via the index function, return false
-                                  [for method in var.api_gateway_methods : can(method.integration) ? 
-                                        can(method.integration.http_method) ?
-                                          contains(["GET", "POST", "PUT", "DELETE", "HEAD", "OPTION", "ANY"], method.integration.http_method) :  # if http_method found... validate it
-                                          false : # Required - If integration specified, http_method must be provided so return false
-                                      true] # integration is not required, so return true
-                                      , false)) # index function lookup value
-                      : true) # if var.api_gateway_methods == [] it wasn't passed at all.  Since this is optional, pass validation
+    condition = (var.api_gateway_methods != [] ?
+      ! can(index(
+        # build an array of true/false values describing if the validation is passed for each record...  if 'false' found via the index function, return false
+        [for method in var.api_gateway_methods : can(method.integration) ?
+          can(method.integration.http_method) ?
+          contains(["GET", "POST", "PUT", "DELETE", "HEAD", "OPTION", "ANY"], method.integration.http_method) : # if http_method found... validate it
+          false :                                                                                               # Required - If integration specified, http_method must be provided so return false
+        true]                                                                                                   # integration is not required, so return true
+      , false))                                                                                                 # index function lookup value
+    : true)                                                                                                     # if var.api_gateway_methods == [] it wasn't passed at all.  Since this is optional, pass validation
     error_message = "If 'api_gateway_methods.integration' is specified, required attribute 'http_method' must be a string equal to GET, POST, PUT, DELETE, HEAD, OPTION, ANY."
   }
 
   // integration.integration_http_method
   validation {
-    condition     = (var.api_gateway_methods != [] ? 
-                      ! can(index(
-                                  # build an array of true/false values describing if the validation is passed for each record...  if 'false' found via the index function, return false
-                                  [for method in var.api_gateway_methods : can(method.integration) ? 
-                                        can(method.integration.integration_http_method) ?
-                                          contains(["GET", "POST", "PUT", "DELETE", "HEAD", "OPTIONS", "ANY", "PATCH"], method.integration.integration_http_method) :  # if integration_http_method found... validate it
-                                          true : # Optional - If not specified, the module assumes "POST" for lambda integrations in locals
-                                      true] # integration is not required, so return true
-                                      , false)) # index function lookup value
-                      : true) # if var.api_gateway_methods == [] it wasn't passed at all.  Since this is optional, pass validation
+    condition = (var.api_gateway_methods != [] ?
+      ! can(index(
+        # build an array of true/false values describing if the validation is passed for each record...  if 'false' found via the index function, return false
+        [for method in var.api_gateway_methods : can(method.integration) ?
+          can(method.integration.integration_http_method) ?
+          contains(["GET", "POST", "PUT", "DELETE", "HEAD", "OPTIONS", "ANY", "PATCH"], method.integration.integration_http_method) : # if integration_http_method found... validate it
+          true :                                                                                                                      # Optional - If not specified, the module assumes "POST" for lambda integrations in locals
+        true]                                                                                                                         # integration is not required, so return true
+      , false))                                                                                                                       # index function lookup value
+    : true)                                                                                                                           # if var.api_gateway_methods == [] it wasn't passed at all.  Since this is optional, pass validation
     error_message = "If 'api_gateway_methods.integration' is specified, optional attribute 'integration_http_method' must be a string equal to GET, POST, PUT, DELETE, HEAD, OPTIONS, ANY, PATCH."
   }
 
   // integration.integration_type
   validation {
-    condition     = (var.api_gateway_methods != [] ? 
-                      ! can(index(
-                                  # build an array of true/false values describing if the validation is passed for each record...  if 'false' found via the index function, return false
-                                  [for method in var.api_gateway_methods : can(method.integration) ? 
-                                        can(method.integration.integration_type) ?
-                                          contains(["HTTP", "MOCK", "AWS", "AWS_PROXY", "HTTP_PROXY"], method.integration.integration_type) :  # if type found... validate it
-                                          true : # Optional - If not specified, the module assumes "AWS_PROXY" for lambda integrations in locals
-                                      true] # integration is not required, so return true
-                                      , false)) # index function lookup value
-                      : true) # if var.api_gateway_methods == [] it wasn't passed at all.  Since this is optional, pass validation
+    condition = (var.api_gateway_methods != [] ?
+      ! can(index(
+        # build an array of true/false values describing if the validation is passed for each record...  if 'false' found via the index function, return false
+        [for method in var.api_gateway_methods : can(method.integration) ?
+          can(method.integration.integration_type) ?
+          contains(["HTTP", "MOCK", "AWS", "AWS_PROXY", "HTTP_PROXY"], method.integration.integration_type) : # if type found... validate it
+          true :                                                                                              # Optional - If not specified, the module assumes "AWS_PROXY" for lambda integrations in locals
+        true]                                                                                                 # integration is not required, so return true
+      , false))                                                                                               # index function lookup value
+    : true)                                                                                                   # if var.api_gateway_methods == [] it wasn't passed at all.  Since this is optional, pass validation
     error_message = "If 'api_gateway_methods.integration' is specified, optional attribute 'integration_type' must be a string equal to HTTP, MOCK, AWS, AWS_PROXY, HTTP_PROXY."
   }
 
   // integration.connection_type
   validation {
-    condition     = (var.api_gateway_methods != [] ? 
-                      ! can(index(
-                                  # build an array of true/false values describing if the validation is passed for each record...  if 'false' found via the index function, return false
-                                  [for method in var.api_gateway_methods : can(method.integration) ? 
-                                        can(method.integration.connection_type) ?
-                                          contains(["INTERNET", "VPC_LINK"], method.integration.connection_type) :  # if type found... validate it
-                                          true : # Optional 
-                                      true] # integration is not required, so return true
-                                      , false)) # index function lookup value
-                      : true) # if var.api_gateway_methods == [] it wasn't passed at all.  Since this is optional, pass validation
+    condition = (var.api_gateway_methods != [] ?
+      ! can(index(
+        # build an array of true/false values describing if the validation is passed for each record...  if 'false' found via the index function, return false
+        [for method in var.api_gateway_methods : can(method.integration) ?
+          can(method.integration.connection_type) ?
+          contains(["INTERNET", "VPC_LINK"], method.integration.connection_type) : # if type found... validate it
+          true :                                                                   # Optional 
+        true]                                                                      # integration is not required, so return true
+      , false))                                                                    # index function lookup value
+    : true)                                                                        # if var.api_gateway_methods == [] it wasn't passed at all.  Since this is optional, pass validation
     error_message = "If 'api_gateway_methods.integration' is specified, optional attribute 'connection_type' must be a string equal to INTERNET, VPC_LINK."
   }
 
   // integration.connection_id
   validation {
-    condition     = (var.api_gateway_methods != [] ? 
-                      ! can(index(
-                                  # build an array of true/false values describing if the validation is passed for each record...  if 'false' found via the index function, return false
-                                  [for method in var.api_gateway_methods : can(method.integration) ? 
-                                        can(method.integration.connection_id) ?
-                                          can(tostring(method.integration.connection_id)) && length(method.integration.connection_id) > 1 :  # if type found... validate it
-                                          true : # Optional 
-                                      true] # integration is not required, so return true
-                                      , false)) # index function lookup value
-                      : true) # if var.api_gateway_methods == [] it wasn't passed at all.  Since this is optional, pass validation
+    condition = (var.api_gateway_methods != [] ?
+      ! can(index(
+        # build an array of true/false values describing if the validation is passed for each record...  if 'false' found via the index function, return false
+        [for method in var.api_gateway_methods : can(method.integration) ?
+          can(method.integration.connection_id) ?
+          can(tostring(method.integration.connection_id)) && length(method.integration.connection_id) > 1 : # if type found... validate it
+          true :                                                                                            # Optional 
+        true]                                                                                               # integration is not required, so return true
+      , false))                                                                                             # index function lookup value
+    : true)                                                                                                 # if var.api_gateway_methods == [] it wasn't passed at all.  Since this is optional, pass validation
     error_message = "If 'api_gateway_methods.integration' is specified, optional attribute 'connection_id' must be a string with length > 1."
   }
 
   // integration.uri
   validation {
-    condition     = (var.api_gateway_methods != [] ? 
-                      ! can(index(
-                                  # build an array of true/false values describing if the validation is passed for each record...  if 'false' found via the index function, return false
-                                  [for method in var.api_gateway_methods : can(method.integration) ? 
-                                        can(method.integration.uri) ?
-                                          can(tostring(method.integration.uri)) && length(method.integration.uri) > 1 :  # if type found... validate it
-                                          true : # Optional 
-                                      true] # integration is not required, so return true
-                                      , false)) # index function lookup value
-                      : true) # if var.api_gateway_methods == [] it wasn't passed at all.  Since this is optional, pass validation
+    condition = (var.api_gateway_methods != [] ?
+      ! can(index(
+        # build an array of true/false values describing if the validation is passed for each record...  if 'false' found via the index function, return false
+        [for method in var.api_gateway_methods : can(method.integration) ?
+          can(method.integration.uri) ?
+          can(tostring(method.integration.uri)) && length(method.integration.uri) > 1 : # if type found... validate it
+          true :                                                                        # Optional 
+        true]                                                                           # integration is not required, so return true
+      , false))                                                                         # index function lookup value
+    : true)                                                                             # if var.api_gateway_methods == [] it wasn't passed at all.  Since this is optional, pass validation
     error_message = "If 'api_gateway_methods.integration' is specified, optional attribute 'uri' must be a string with length > 1."
   }
 
   // integration.credentials
   validation {
-    condition     = (var.api_gateway_methods != [] ? 
-                      ! can(index(
-                                  # build an array of true/false values describing if the validation is passed for each record...  if 'false' found via the index function, return false
-                                  [for method in var.api_gateway_methods : can(method.integration) ? 
-                                        can(method.integration.credentials) ?
-                                          can(tostring(method.integration.credentials)) && length(method.integration.credentials) > 1 :  # if type found... validate it
-                                          true : # Optional 
-                                      true] # integration is not required, so return true
-                                      , false)) # index function lookup value
-                      : true) # if var.api_gateway_methods == [] it wasn't passed at all.  Since this is optional, pass validation
+    condition = (var.api_gateway_methods != [] ?
+      ! can(index(
+        # build an array of true/false values describing if the validation is passed for each record...  if 'false' found via the index function, return false
+        [for method in var.api_gateway_methods : can(method.integration) ?
+          can(method.integration.credentials) ?
+          can(tostring(method.integration.credentials)) && length(method.integration.credentials) > 1 : # if type found... validate it
+          true :                                                                                        # Optional 
+        true]                                                                                           # integration is not required, so return true
+      , false))                                                                                         # index function lookup value
+    : true)                                                                                             # if var.api_gateway_methods == [] it wasn't passed at all.  Since this is optional, pass validation
     error_message = "If 'api_gateway_methods.integration' is specified, optional attribute 'credentials' must be a string with length > 1."
   }
 
   // integration.request_parameters
   validation {
-    condition     = (var.api_gateway_methods != [] ? 
-                      ! can(index(
-                                  # build an array of true/false values describing if the validation is passed for each record...  if 'false' found via the index function, return false
-                                  [for method in var.api_gateway_methods : can(method.integration) ? 
-                                        can(method.integration.request_parameters) ?
-                                          can(tomap(method.integration.request_parameters)) && length(method.integration.request_parameters) >= 1 :  # if type found... validate it
-                                          true : # Optional 
-                                      true] # integration is not required, so return true
-                                      , false)) # index function lookup value
-                      : true) # if var.api_gateway_methods == [] it wasn't passed at all.  Since this is optional, pass validation
+    condition = (var.api_gateway_methods != [] ?
+      ! can(index(
+        # build an array of true/false values describing if the validation is passed for each record...  if 'false' found via the index function, return false
+        [for method in var.api_gateway_methods : can(method.integration) ?
+          can(method.integration.request_parameters) ?
+          can(tomap(method.integration.request_parameters)) && length(method.integration.request_parameters) >= 1 : # if type found... validate it
+          true :                                                                                                    # Optional 
+        true]                                                                                                       # integration is not required, so return true
+      , false))                                                                                                     # index function lookup value
+    : true)                                                                                                         # if var.api_gateway_methods == [] it wasn't passed at all.  Since this is optional, pass validation
     error_message = "If 'api_gateway_methods.integration' is specified, optional attribute 'request_parameters' must be a map with attributes > 1."
   }
 
   // integration.request_templates
   validation {
-    condition     = (var.api_gateway_methods != [] ? 
-                      ! can(index(
-                                  # build an array of true/false values describing if the validation is passed for each record...  if 'false' found via the index function, return false
-                                  [for method in var.api_gateway_methods : can(method.integration) ? 
-                                        can(method.integration.request_templates) ?
-                                          can(tomap(method.integration.request_templates)) && length(method.integration.request_templates) >= 1 :  # if type found... validate it
-                                          true : # Optional 
-                                      true] # integration is not required, so return true
-                                      , false)) # index function lookup value
-                      : true) # if var.api_gateway_methods == [] it wasn't passed at all.  Since this is optional, pass validation
+    condition = (var.api_gateway_methods != [] ?
+      ! can(index(
+        # build an array of true/false values describing if the validation is passed for each record...  if 'false' found via the index function, return false
+        [for method in var.api_gateway_methods : can(method.integration) ?
+          can(method.integration.request_templates) ?
+          can(tomap(method.integration.request_templates)) && length(method.integration.request_templates) >= 1 : # if type found... validate it
+          true :                                                                                                  # Optional 
+        true]                                                                                                     # integration is not required, so return true
+      , false))                                                                                                   # index function lookup value
+    : true)                                                                                                       # if var.api_gateway_methods == [] it wasn't passed at all.  Since this is optional, pass validation
     error_message = "If 'api_gateway_methods.integration' is specified, optional attribute 'request_templates' must be a map with attributes > 1."
   }
 
   // integration.passthrough_behavior
   validation {
-    condition     = (var.api_gateway_methods != [] ? 
-                      ! can(index(
-                                  # build an array of true/false values describing if the validation is passed for each record...  if 'false' found via the index function, return false
-                                  [for method in var.api_gateway_methods : can(method.integration) ? 
-                                        can(method.integration.passthrough_behavior) ?
-                                          contains(["WHEN_NO_MATCH", "WHEN_NO_TEMPLATES", "NEVER"], method.integration.passthrough_behavior) :  # if type found... validate it
-                                          true : # Optional 
-                                      true] # integration is not required, so return true
-                                      , false)) # index function lookup value
-                      : true) # if var.api_gateway_methods == [] it wasn't passed at all.  Since this is optional, pass validation
+    condition = (var.api_gateway_methods != [] ?
+      ! can(index(
+        # build an array of true/false values describing if the validation is passed for each record...  if 'false' found via the index function, return false
+        [for method in var.api_gateway_methods : can(method.integration) ?
+          can(method.integration.passthrough_behavior) ?
+          contains(["WHEN_NO_MATCH", "WHEN_NO_TEMPLATES", "NEVER"], method.integration.passthrough_behavior) : # if type found... validate it
+          true :                                                                                               # Optional 
+        true]                                                                                                  # integration is not required, so return true
+      , false))                                                                                                # index function lookup value
+    : true)                                                                                                    # if var.api_gateway_methods == [] it wasn't passed at all.  Since this is optional, pass validation
     error_message = "If 'api_gateway_methods.integration' is specified, optional attribute 'passthrough_behavior' must be a string equal to WHEN_NO_MATCH, WHEN_NO_TEMPLATES, NEVER."
   }
 
   // integration.cache_key_parameters
   validation {
-    condition     = (var.api_gateway_methods != [] ? 
-                      ! can(index(
-                                  # build an array of true/false values describing if the validation is passed for each record...  if 'false' found via the index function, return false
-                                  [for method in var.api_gateway_methods : can(method.integration) ? 
-                                        can(method.integration.cache_key_parameters) ?
-                                          can(toset(method.integration.cache_key_parameters)) && length(method.integration.cache_key_parameters) >= 1 :  # if type found... validate it
-                                          true : # Optional 
-                                      true] # integration is not required, so return true
-                                      , false)) # index function lookup value
-                      : true) # if var.api_gateway_methods == [] it wasn't passed at all.  Since this is optional, pass validation
+    condition = (var.api_gateway_methods != [] ?
+      ! can(index(
+        # build an array of true/false values describing if the validation is passed for each record...  if 'false' found via the index function, return false
+        [for method in var.api_gateway_methods : can(method.integration) ?
+          can(method.integration.cache_key_parameters) ?
+          can(toset(method.integration.cache_key_parameters)) && length(method.integration.cache_key_parameters) >= 1 : # if type found... validate it
+          true :                                                                                                        # Optional 
+        true]                                                                                                           # integration is not required, so return true
+      , false))                                                                                                         # index function lookup value
+    : true)                                                                                                             # if var.api_gateway_methods == [] it wasn't passed at all.  Since this is optional, pass validation
     error_message = "If 'api_gateway_methods.integration' is specified, optional attribute 'cache_key_parameters' must be a set of string > 1."
   }
 
   // integration.cache_namespace
   validation {
-    condition     = (var.api_gateway_methods != [] ? 
-                      ! can(index(
-                                  # build an array of true/false values describing if the validation is passed for each record...  if 'false' found via the index function, return false
-                                  [for method in var.api_gateway_methods : can(method.integration) ? 
-                                        can(method.integration.cache_namespace) ?
-                                          can(tostring(method.integration.cache_namespace)) && length(method.integration.cache_namespace) > 1 :  # if type found... validate it
-                                          true : # Optional 
-                                      true] # integration is not required, so return true
-                                      , false)) # index function lookup value
-                      : true) # if var.api_gateway_methods == [] it wasn't passed at all.  Since this is optional, pass validation
+    condition = (var.api_gateway_methods != [] ?
+      ! can(index(
+        # build an array of true/false values describing if the validation is passed for each record...  if 'false' found via the index function, return false
+        [for method in var.api_gateway_methods : can(method.integration) ?
+          can(method.integration.cache_namespace) ?
+          can(tostring(method.integration.cache_namespace)) && length(method.integration.cache_namespace) > 1 : # if type found... validate it
+          true :                                                                                                # Optional 
+        true]                                                                                                   # integration is not required, so return true
+      , false))                                                                                                 # index function lookup value
+    : true)                                                                                                     # if var.api_gateway_methods == [] it wasn't passed at all.  Since this is optional, pass validation
     error_message = "If 'api_gateway_methods.integration' is specified, optional attribute 'cache_namespace' must be a string with length > 1."
   }
 
   // integration.content_handling
   validation {
-    condition     = (var.api_gateway_methods != [] ? 
-                      ! can(index(
-                                  # build an array of true/false values describing if the validation is passed for each record...  if 'false' found via the index function, return false
-                                  [for method in var.api_gateway_methods : can(method.integration) ? 
-                                        can(method.integration.content_handling) ?
-                                          contains(["CONVERT_TO_BINARY", "CONVERT_TO_TEXT"], method.integration.content_handling) :  # if type found... validate it
-                                          true : # Optional 
-                                      true] # integration is not required, so return true
-                                      , false)) # index function lookup value
-                      : true) # if var.api_gateway_methods == [] it wasn't passed at all.  Since this is optional, pass validation
+    condition = (var.api_gateway_methods != [] ?
+      ! can(index(
+        # build an array of true/false values describing if the validation is passed for each record...  if 'false' found via the index function, return false
+        [for method in var.api_gateway_methods : can(method.integration) ?
+          can(method.integration.content_handling) ?
+          contains(["CONVERT_TO_BINARY", "CONVERT_TO_TEXT"], method.integration.content_handling) : # if type found... validate it
+          true :                                                                                    # Optional 
+        true]                                                                                       # integration is not required, so return true
+      , false))                                                                                     # index function lookup value
+    : true)                                                                                         # if var.api_gateway_methods == [] it wasn't passed at all.  Since this is optional, pass validation
     error_message = "If 'api_gateway_methods.integration' is specified, optional attribute 'content_handling' must be a string equal to CONVERT_TO_BINARY, CONVERT_TO_TEXT."
   }
 
   // integration.timeout_milliseconds
   validation {
-    condition     = (var.api_gateway_methods != [] ? 
-                      ! can(index(
-                                  # build an array of true/false values describing if the validation is passed for each record...  if 'false' found via the index function, return false
-                                  [for method in var.api_gateway_methods : can(method.integration) ? 
-                                        can(method.integration.timeout_milliseconds) ?
-                                          can(tonumber(method.integration.timeout_milliseconds)) && method.integration.timeout_milliseconds >= 50 && method.integration.timeout_milliseconds <= 29000 :  # if type found... validate it
-                                          true : # Optional 
-                                      true] # integration is not required, so return true
-                                      , false)) # index function lookup value
-                      : true) # if var.api_gateway_methods == [] it wasn't passed at all.  Since this is optional, pass validation
+    condition = (var.api_gateway_methods != [] ?
+      ! can(index(
+        # build an array of true/false values describing if the validation is passed for each record...  if 'false' found via the index function, return false
+        [for method in var.api_gateway_methods : can(method.integration) ?
+          can(method.integration.timeout_milliseconds) ?
+          can(tonumber(method.integration.timeout_milliseconds)) && method.integration.timeout_milliseconds >= 50 && method.integration.timeout_milliseconds <= 29000 : # if type found... validate it
+          true :                                                                                                                                                        # Optional 
+        true]                                                                                                                                                           # integration is not required, so return true
+      , false))                                                                                                                                                         # index function lookup value
+    : true)                                                                                                                                                             # if var.api_gateway_methods == [] it wasn't passed at all.  Since this is optional, pass validation
     error_message = "If 'api_gateway_methods.integration' is specified, optional attribute 'timeout_milliseconds' must be a number >= 50 and <= 29,000."
   }
 
   // integration.integration_responses
   validation {
-    condition     = (var.api_gateway_methods != [] ? 
-                      ! can(index(
-                                  # build an array of true/false values describing if the validation is passed for each record...  if 'false' found via the index function, return false
-                                  [for method in var.api_gateway_methods : can(method.integration) ? 
-                                        can(method.integration.integration_responses) ?
-                                          can(toset(method.integration.integration_responses)) && length(method.integration.integration_responses) > 0 :  # if type found... validate it
-                                          true : # Optional 
-                                      true] # integration is not required, so return true
-                                      , false)) # index function lookup value
-                      : true) # if var.api_gateway_methods == [] it wasn't passed at all.  Since this is optional, pass validation
+    condition = (var.api_gateway_methods != [] ?
+      ! can(index(
+        # build an array of true/false values describing if the validation is passed for each record...  if 'false' found via the index function, return false
+        [for method in var.api_gateway_methods : can(method.integration) ?
+          can(method.integration.integration_responses) ?
+          can(toset(method.integration.integration_responses)) && length(method.integration.integration_responses) > 0 : # if type found... validate it
+          true :                                                                                                         # Optional 
+        true]                                                                                                            # integration is not required, so return true
+      , false))                                                                                                          # index function lookup value
+    : true)                                                                                                              # if var.api_gateway_methods == [] it wasn't passed at all.  Since this is optional, pass validation
     error_message = "If 'api_gateway_methods.integration' is specified, optional attribute 'integration_responses' must be a set of objects > 1."
   }
 
   // integration.integration_responses.response_parameters
   validation {
-    condition     = (var.api_gateway_methods != [] ? 
-                      ! can(index(
-                                  # build an array of true/false values describing if the validation is passed for each record...  if 'false' found via the index function, return false
-                                  [for method in var.api_gateway_methods : can(method.integration.integration_responses) ? 
-                                        ! can(index([for response in method.integration.integration_responses : can(response.response_parameters) ?
-                                            can(tomap(response.response_parameters)) && length(response.response_parameters) > 0 :
-                                            true] # integration_responses is optional
-                                              , false)) # did any falses return in the list?
-                                  : true ] # integration_responses are not required, so return true
-                                      , false)) # did any falses return in the outer list?
-                      : true) # if var.api_gateway_methods == [] it wasn't passed at all.  Since this is optional, pass validation
+    condition = (var.api_gateway_methods != [] ?
+      ! can(index(
+        # build an array of true/false values describing if the validation is passed for each record...  if 'false' found via the index function, return false
+        [for method in var.api_gateway_methods : can(method.integration.integration_responses) ?
+          ! can(index([for response in method.integration.integration_responses : can(response.response_parameters) ?
+            can(tomap(response.response_parameters)) && length(response.response_parameters) > 0 :
+            true]   # integration_responses is optional
+          , false)) # did any falses return in the list?
+        : true]     # integration_responses are not required, so return true
+      , false))     # did any falses return in the outer list?
+    : true)         # if var.api_gateway_methods == [] it wasn't passed at all.  Since this is optional, pass validation
     error_message = "If 'api_gateway_methods.integration.integration_responses' is specified, optional attribute 'response_parameters' must be a map with attributes > 0."
   }
 
   // integration.integration_responses.response_templates
   validation {
-    condition     = (var.api_gateway_methods != [] ? 
-                      ! can(index(
-                                  # build an array of true/false values describing if the validation is passed for each record...  if 'false' found via the index function, return false
-                                  [for method in var.api_gateway_methods : can(method.integration.integration_responses) ? 
-                                        ! can(index([for response in method.integration.integration_responses : can(response.response_templates) ?
-                                            can(tomap(response.response_templates)) && length(response.response_templates) > 0 :
-                                            true] # integration_responses is optional
-                                              , false)) # did any falses return in the list?
-                                  : true ] # integration_responses are not required, so return true
-                            , false)) # did any falses return in the outer list?
-                      : true) # if var.api_gateway_methods == [] it wasn't passed at all.  Since this is optional, pass validation
+    condition = (var.api_gateway_methods != [] ?
+      ! can(index(
+        # build an array of true/false values describing if the validation is passed for each record...  if 'false' found via the index function, return false
+        [for method in var.api_gateway_methods : can(method.integration.integration_responses) ?
+          ! can(index([for response in method.integration.integration_responses : can(response.response_templates) ?
+            can(tomap(response.response_templates)) && length(response.response_templates) > 0 :
+            true]   # integration_responses is optional
+          , false)) # did any falses return in the list?
+        : true]     # integration_responses are not required, so return true
+      , false))     # did any falses return in the outer list?
+    : true)         # if var.api_gateway_methods == [] it wasn't passed at all.  Since this is optional, pass validation
     error_message = "If 'api_gateway_methods.integration.integration_responses' is specified, optional attribute 'response_templates' must be a map with attributes > 0."
   }
 
   // integration.integration_responses.content_handling
   validation {
-    condition     = (var.api_gateway_methods != [] ? 
-                      ! can(index(
-                                  # build an array of true/false values describing if the validation is passed for each record...  if 'false' found via the index function, return false
-                                  [for method in var.api_gateway_methods : can(method.integration.integration_responses) ? 
-                                        ! can(index([for response in method.integration.integration_responses : can(response.content_handling) ?
-                                            contains(["CONVERT_TO_BINARY", "CONVERT_TO_TEXT"], response.content_handling) : # the validation
-                                            true] # integration_responses is optional
-                                              , false)) # did any falses return in the list?
-                                  : true ] # integration_responses are not required, so return true
-                                      , false)) # did any falses return in the outer list?
-                      : true) # if var.api_gateway_methods == [] it wasn't passed at all.  Since this is optional, pass validation
+    condition = (var.api_gateway_methods != [] ?
+      ! can(index(
+        # build an array of true/false values describing if the validation is passed for each record...  if 'false' found via the index function, return false
+        [for method in var.api_gateway_methods : can(method.integration.integration_responses) ?
+          ! can(index([for response in method.integration.integration_responses : can(response.content_handling) ?
+            contains(["CONVERT_TO_BINARY", "CONVERT_TO_TEXT"], response.content_handling) : # the validation
+            true]                                                                           # integration_responses is optional
+          , false))                                                                         # did any falses return in the list?
+        : true]                                                                             # integration_responses are not required, so return true
+      , false))                                                                             # did any falses return in the outer list?
+    : true)                                                                                 # if var.api_gateway_methods == [] it wasn't passed at all.  Since this is optional, pass validation
     error_message = "If 'api_gateway_methods.integration.integration_responses' is specified, optional attribute 'content_handling' must be a string equal to CONVERT_TO_BINARY or CONVERT_TO_TEXT."
   }
 
   // method_responses
   validation {
-    condition     = (var.api_gateway_methods != [] ?
-                      ! can(index(
-                              [for method in var.api_gateway_methods : can(method.method_responses) ?
-                                can(toset(method.method_responses)) && length(method.method_responses) > 0 :
-                                true] # method_responses is optional
-                            , false)) :
-                      true)
+    condition = (var.api_gateway_methods != [] ?
+      ! can(index(
+        [for method in var.api_gateway_methods : can(method.method_responses) ?
+          can(toset(method.method_responses)) && length(method.method_responses) > 0 :
+        true] # method_responses is optional
+      , false)) :
+    true)
     error_message = "Optional attribute 'method_responses' of 'api_gateway_methods' must be a set of objects with size > 0."
   }
 
   // method_responses.status_code
   validation {
-    condition     = (var.api_gateway_methods != [] ?
-                      ! can(index(
-                              [for method in var.api_gateway_methods : can(method.method_responses) ?
-                                ! can(index([for response in method.method_responses : can(response.status_code) ?
-                                          can(tostring(response.status_code)) && length(response.status_code) > 1 : # the validation
-                                          true] # method_responses is optional
-                                      , false)) : # did any falses return in the list?
-                                true]
-                            , false)) :
-                      true)
+    condition = (var.api_gateway_methods != [] ?
+      ! can(index(
+        [for method in var.api_gateway_methods : can(method.method_responses) ?
+          ! can(index([for response in method.method_responses : can(response.status_code) ?
+            can(tostring(response.status_code)) && length(response.status_code) > 1 : # the validation
+            true]                                                                     # method_responses is optional
+          , false)) :                                                                 # did any falses return in the list?
+        true]
+      , false)) :
+    true)
     error_message = "Optional attribute 'method_responses.status_code' of 'api_gateway_methods' must be a string with length > 1."
   }
 
   // method_responses.response_models
   validation {
-    condition     = (var.api_gateway_methods != [] ?
-                      ! can(index(
-                              [for method in var.api_gateway_methods : can(method.method_responses) ?
-                                ! can(index([for response in method.method_responses : can(response.response_models) ?
-                                          can(tomap(response.response_models)) && length(response.response_models) > 0 : # the validation
-                                          true] # method_responses is optional
-                                      , false)) : # did any falses return in the list?
-                                true]
-                            , false)) :
-                      true)
+    condition = (var.api_gateway_methods != [] ?
+      ! can(index(
+        [for method in var.api_gateway_methods : can(method.method_responses) ?
+          ! can(index([for response in method.method_responses : can(response.response_models) ?
+            can(tomap(response.response_models)) && length(response.response_models) > 0 : # the validation
+            true]                                                                          # method_responses is optional
+          , false)) :                                                                      # did any falses return in the list?
+        true]
+      , false)) :
+    true)
     error_message = "Optional attribute 'method_responses.response_models' of 'api_gateway_methods' must be a map with attributes > 0."
   }
 
   // method_responses.response_parameters
   validation {
-    condition     = (var.api_gateway_methods != [] ?
-                      ! can(index(
-                              [for method in var.api_gateway_methods : can(method.method_responses) ?
-                                ! can(index([for response in method.method_responses : can(response.response_parameters) ?
-                                          can(tomap(response.response_parameters)) && length(response.response_parameters) > 0 : # the validation
-                                          true] # method_responses is optional
-                                      , false)) : # did any falses return in the list?
-                                true]
-                            , false)) :
-                      true)
+    condition = (var.api_gateway_methods != [] ?
+      ! can(index(
+        [for method in var.api_gateway_methods : can(method.method_responses) ?
+          ! can(index([for response in method.method_responses : can(response.response_parameters) ?
+            can(tomap(response.response_parameters)) && length(response.response_parameters) > 0 : # the validation
+            true]                                                                                  # method_responses is optional
+          , false)) :                                                                              # did any falses return in the list?
+        true]
+      , false)) :
+    true)
     error_message = "Optional attribute 'method_responses.response_parameters' of 'api_gateway_methods' must be a map with attributes > 0."
   }
 }
