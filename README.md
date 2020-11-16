@@ -82,8 +82,8 @@ Here is an example of how you can use this module in your inventory structure:
 | minimum_compression_size | Minimum response size to compress for the REST API. Integer between -1 and 10485760 (10MB). Setting a value greater than -1 will enable compression, -1 disables compression (default). | `number` | no | `null` |
 | custom_domain | The custom domain to associate to this REST API. | `string` | no | `null` |
 | acm_cert_arn | The AWS ACM Certificate arn to associate to this REST API custom domain. | `string` | no | `null` |
-| api_gateway_client_cert_enabled | Whether or not to generate a client certificate for this REST API. | `string` | no | `false` |
-| api_gateway_client_cert_description | Managed by the P&G AWS API Gateway Terraform Module https://github.com/procter-gamble/terraform-module-aws-api-gateway.git | `string` | no | `null` |
+| client_cert_enabled | Whether or not to generate a client certificate for this REST API. | `string` | no | `false` |
+| client_cert_description | Managed by the P&G AWS API Gateway Terraform Module https://github.com/procter-gamble/terraform-module-aws-api-gateway.git | `string` | no | `null` |
 | policy | The IAM Policy applied to the REST API. | `string` | no | `null` |
 
 ### Variable: api_gateway_deployment
