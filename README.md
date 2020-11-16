@@ -86,6 +86,162 @@ Here is an example of how you can use this module in your inventory structure:
   }
 ```
 
+### Example creating the app lambda from source, a lambda authorizer from source, a custom certificate, a custom domain, and api gateway
+```hcl
+
+  ##############################
+  # Custom Domain Certificate ##
+  ##############################
+  module "acm_cert" {
+    source = "git@github.com:procter-gamble/terraform-module-aws-acm-certificate"
+    providers = { aws = aws }
+    domain = "api.${var.domain}"
+    hosted_zone = "np.pgcloud.com"
+    tags = var.tags
+  }
+
+  ################
+  # API Gateway ##
+  ################
+  module "api_gateway" {
+    source = "git@github.com:procter-gamble/terraform-module-aws-api-gateway"
+    providers = { aws = aws }
+    
+    tags    = var.tags
+    
+    api_gateway = {
+      name = "api-gateway"
+      custom_domain = "api.${var.domain}"
+      acm_cert_arn = module.acm_cert.arn
+    }
+
+    authorizer_definitions = [
+      {
+        authorizer_name = "pingFedAuth"
+        authorizer_uri  = module.ping_authorizer.this_lambda_function_invoke_arn
+      }
+    ]
+
+    api_gateway_methods = [
+      {
+        resource_path   = "getBitlockerKey"
+        authorizer_name = "pingFedAuth"
+
+        integration = {
+          uri         = module.app_lambda.this_lambda_function_invoke_arn
+        }
+      }
+    ]
+
+    depends_on = [module.acm_cert]
+  }
+
+  module "lambda_security_group" {
+    source  = "terraform-aws-modules/security-group/aws"
+    version = "~> 3.0"
+
+    name        = "lambda-sg-my-awesome-lambda"
+    description = "Lambda security group for example usage"
+    vpc_id      = module.aws_values.vpc.id
+
+    ingress_cidr_blocks = ["0.0.0.0/0"]
+    ingress_rules       = ["https-443-tcp"]
+
+    tags = var.tags
+
+    egress_with_cidr_blocks = [
+      {
+        from_port   = 443
+        to_port     = 443
+        protocol    = 6
+        description = "HTTPS"
+        cidr_blocks = "0.0.0.0/0"
+      }
+    ]
+  }
+
+  #############################################
+  # Build and Deploy Lambda module
+  #############################################
+  module "app_lambda" {
+    source  = "terraform-aws-modules/lambda/aws"
+    version = "~> 1.0"
+
+    function_name = "my-awesome-lambda"
+    description   = "My awesome lambda function"
+    handler       = "index.lambda_handler"
+    runtime       = "python3.8"
+
+    tags = var.tags
+
+    publish = true
+
+    create_package = true
+
+    source_path = "${path.module}/../api_backend/python_lambdas"
+
+    attach_network_policy = true
+    vpc_subnet_ids        = ["subnet-0fc6bcf1909125b68"]
+    vpc_security_group_ids = [module.lambda_security_group.this_security_group_id]
+
+    allowed_triggers = {
+      AllowExecutionFromAPIGateway = {
+        service = "apigateway"
+        arn     = module.api_gateway.execution_arn
+      }
+    }
+  }
+
+  module "ping_authorizer" {
+    source  = "terraform-aws-modules/lambda/aws"
+    version = "~> 1.0"
+
+    function_name = "my-authorizor-lambda"
+    description   = "My authorizor lambda function"
+    handler       = "auth.lambda_handler"
+    runtime       = "nodejs12.x"
+    tags          = var.tags
+
+    publish = true
+
+    create_package = true
+
+    source_path = [
+      {
+        path = "${path.module}/../api_backend/node_js_lambdas"
+        commands = [
+          "npm install",
+          ":zip .",
+        ]
+        patterns = [
+          "!.*/.*\\.txt",    # Skip all txt files recursively
+          "node_modules/.+", # Include all node_modules
+        ]
+      }
+    ]
+
+    kms_key_arn = module.kms.arn
+
+    environment_variables = {
+      PingClientID    = data.aws_ssm_parameter.ping_client_id.value
+      Domain          = data.aws_ssm_parameter.ping_instance.value
+      GroupAttributes = "{\"isAdmin\": \"GDS-Infosec-Arch-Engineering\"}"
+      COOKIE_AUTH     = false
+    }
+
+    attach_network_policy = true
+    vpc_subnet_ids        = ["subnet-0fc6bcf1909125b68"]
+    vpc_security_group_ids = [module.lambda_security_group.this_security_group_id]
+
+    allowed_triggers = {
+      AllowExecutionFromAPIGateway = {
+        service = "apigateway"
+        arn     = module.api_gateway.execution_arn
+      }
+    }
+  }
+```
+
 ## Inputs
 
 Note:  If you choose to provide the optional objects below, you will have to reference the section below called "Detailed Input Structures" to find which attributes are required for the object.
