@@ -137,7 +137,7 @@ variable api_gateway {
   }
 }
 
-variable "api_gateway_deployment_default" {
+variable api_gateway_deployment_default {
   description = "AWS API Gateway deployment default."
   type        = any
   default = {

@@ -59,6 +59,7 @@ Here is an example of how you can use this module in your inventory structure:
 | enabled | Whether to create the REST API or not | `bool` | no | `true` |
 | tags | Tags to be applied to the resource | `map(string)` | no | `{}` |
 | api_gateway | AWS API Gateway Settings | `object` | yes | `null` |
+| api_gateway_deployment | AWS API Gateway Deployment | `object` | no | `null` |
 
 ## Outputs
 
@@ -67,7 +68,7 @@ Here is an example of how you can use this module in your inventory structure:
 | id | The ID of the REST API. |
 | execution_arn | The Execution ARN of the REST API. | 
 
-## Input Data Structures
+## Detailed Input Data Structures
 
 ### Variable: api_gateway
 | Name | Description | Type | Required  | Default|
@@ -84,3 +85,11 @@ Here is an example of how you can use this module in your inventory structure:
 | api_gateway_client_cert_enabled | Whether or not to generate a client certificate for this REST API. | `string` | no | `false` |
 | api_gateway_client_cert_description | Managed by the P&G AWS API Gateway Terraform Module https://github.com/procter-gamble/terraform-module-aws-api-gateway.git | `string` | no | `null` |
 | policy | The IAM Policy applied to the REST API. | `string` | no | `null` |
+
+### Variable: api_gateway_deployment
+| Name | Description | Type | Required  | Default|
+|------|-------------|------|---------|:--------:|
+| stage_name | Name of the deployment. | `string` | yes | `null` |
+| stage_description | The description of the stage. | `string` | no | `null` |
+| description | The description of the deployment. | `string` | no | `null` |
+| variables | A map that defines variables for the deployment. | `map` | no | `null` |
