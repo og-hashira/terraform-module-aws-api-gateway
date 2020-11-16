@@ -57,8 +57,19 @@ Here is an example of how you can use this module in your inventory structure:
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
 | enabled | Whether to create the REST API or not | `bool` | `true` | no |
-| tags | Tags to be applied to the resource | map(string) | {} | yes |
-| api_gateway | AWS API Gateway Settings | `object` | `` | yes |
+| tags | Tags to be applied to the resource | `map(string)` | `{}` | no |
+| api_gateway | AWS API Gateway Settings | `object` | {name                                = null
+    api_key_source                      = null
+    binary_media_types                  = null
+    description                         = "Managed by the P&G AWS API Gateway Terraform Module https://github.com/procter-gamble/terraform-module-aws-api-gateway.git"
+    endpoint_configuration              = null
+    minimum_compression_size            = null
+    policy                              = null
+    custom_domain                       = null
+    acm_cert_arn                        = null
+    api_gateway_client_cert_enabled     = false
+    api_gateway_client_cert_description = "Managed by the P&G AWS API Gateway Terraform Module https://github.com/procter-gamble/terraform-module-aws-api-gateway.git"
+  }` | yes |
 
 ## Outputs
 

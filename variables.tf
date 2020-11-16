@@ -709,11 +709,11 @@ variable api_gateway_methods {
         [for method in var.api_gateway_methods : can(method.integration) ?
           can(method.integration.http_method) ?
           contains(["GET", "POST", "PUT", "DELETE", "HEAD", "OPTION", "ANY"], method.integration.http_method) : # if http_method found... validate it
-          false :                                                                                               # Required - If integration specified, http_method must be provided so return false
+          true :                                                                                               # optional - If integration specified, http_method must be provided so return false
         true]                                                                                                   # integration is not required, so return true
       , false))                                                                                                 # index function lookup value
     : true)                                                                                                     # if var.api_gateway_methods == [] it wasn't passed at all.  Since this is optional, pass validation
-    error_message = "If 'api_gateway_methods.integration' is specified, required attribute 'http_method' must be a string equal to GET, POST, PUT, DELETE, HEAD, OPTION, ANY."
+    error_message = "If 'api_gateway_methods.integration' is specified, optional attribute 'http_method' must be a string equal to GET, POST, PUT, DELETE, HEAD, OPTION, ANY."
   }
 
   // integration.integration_http_method
