@@ -77,8 +77,8 @@ Here is an example of how you can use this module in your inventory structure:
 | api_key_source | The source of the API key for requests. Valid values are HEADER (default) and AUTHORIZER. | `string` | no | `null` |
 | binary_media_types | The set of binary media types supported by the RestApi. By default, the RestApi supports only UTF-8-encoded text payloads. | `set(string)` | no | `null` |
 | description | The description of the REST API. | `string` | no | Managed by the P&G AWS API Gateway Terraform Module https://github.com/procter-gamble/terraform-module-aws-api-gateway.git |
-| endpoint_configuration.types | This resource currently only supports managing a single value. Valid values: EDGE, REGIONAL or PRIVATE | `set(string)` | no | `null` |
-| endpoint_configuration.vpc_endpoint_ids | A list of VPC Endpoint Ids. | `list(string)` | no | `null` |
+| endpoint_configuration types | This resource currently only supports managing a single value. Valid values: EDGE, REGIONAL or PRIVATE | `set(string)` | no | `null` |
+| endpoint_configuration vpc_endpoint_ids | A list of VPC Endpoint Ids. | `list(string)` | no | `null` |
 | minimum_compression_size | Minimum response size to compress for the REST API. Integer between -1 and 10485760 (10MB). Setting a value greater than -1 will enable compression, -1 disables compression (default). | `number` | no | `null` |
 | custom_domain | The custom domain to associate to this REST API. | `string` | no | `null` |
 | acm_cert_arn | The AWS ACM Certificate arn to associate to this REST API custom domain. | `string` | no | `null` |
