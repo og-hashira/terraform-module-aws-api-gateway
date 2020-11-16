@@ -33,7 +33,8 @@ Here is an example of how you can use this module in your inventory structure:
 ```hcl
   module "api_gateway" {
     source = "git@github.com:procter-gamble/terraform-module-aws-api-gateway"
-    
+    providers = { aws = aws }
+
     api_gateway = {
       name = "api-gateway"
     }
@@ -41,14 +42,13 @@ Here is an example of how you can use this module in your inventory structure:
     api_gateway_methods = [
       {
         resource_path   = "myPath"
-
         integration = {
-          uri         = "<valid_lambda_function_invoke_arn>"
+          uri = "<valid_lambda_function_invoke_arn>"
         }
       }
     ]
 
-    tags    = var.tags
+    tags = var.tags
   }
 ```
 
