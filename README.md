@@ -56,11 +56,9 @@ Here is an example of how you can use this module in your inventory structure:
 
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
-<!-- 
-| domain | The domain associated with the certificate. | `string` | `` | yes |
-| hosted_zone_id | The id of the Route53 hosted zone. | `string` | `` | yes |
-| tags | Tags to be applied to the resource | map(string) | {} | no |
--->
+| enabled | Whether to create the REST API or not | `bool` | `true` | no |
+| tags | Tags to be applied to the resource | map(string) | {} | yes |
+| api_gateway | AWS API Gateway Settings | `object` | `` | yes |
 
 ## Outputs
 
