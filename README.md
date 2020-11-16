@@ -90,6 +90,6 @@ Here is an example of how you can use this module in your inventory structure:
 | Name | Description | Type | Required  | Default|
 |------|-------------|------|---------|:--------:|
 | stage_name | Name of the deployment. | `string` | yes | `null` |
-| stage_description | The description of the stage. | `string` | no | `null` |
-| description | The description of the deployment. | `string` | no | `null` |
+| stage_description | The description of the stage. | `string` | no | Managed by the P&G AWS API Gateway Terraform Module https://github.com/procter-gamble/terraform-module-aws-api-gateway.git |
+| description | The description of the deployment. | `string` | no | Managed by the P&G AWS API Gateway Terraform Module https://github.com/procter-gamble/terraform-module-aws-api-gateway.git |
 | variables | A map that defines variables for the deployment. | `map` | no | `null` |
