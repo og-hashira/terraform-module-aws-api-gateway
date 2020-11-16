@@ -1,7 +1,7 @@
-tags = { "bu" = "xyz" }
+# tags = { "bu" = "xyz" }
 
-api_gateway = {
-  name = "api-gateway"
+# api_gateway = {
+#   name = "api-gateway"
   # description                         = "The test api-gateway"
   # binary_media_types                  = ["UTF-8-encoded"]
   # minimum_compression_size            = -1
@@ -11,7 +11,7 @@ api_gateway = {
   # acm_cert_arn   = ""
   # api_gateway_client_cert_enabled     = false
   # api_gateway_client_cert_description = ""
-}
+# }
 
 # api_gateway_deployment = {
 #   stage_name        = "afasdf"
@@ -84,26 +84,26 @@ api_gateway = {
 #   }
 # ]
 
-authorizer_definitions = [
-  {
-    authorizer_name = "pingFedAuth"
-    authorizer_uri  = "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:459235286243:function:my-authorizor-lambda/invocations"
-    # provider_arns = []
-  }
-]
+# authorizer_definitions = [
+#   {
+#     authorizer_name = "pingFedAuth"
+#     authorizer_uri  = "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:459235286243:function:my-authorizor-lambda/invocations"
+#     # provider_arns = []
+#   }
+# ]
 
-api_gateway_methods = [
-  {
-    resource_path   = "blah"
-    http_method     = "POST"
-    # authorization   = "CUSTOM"
-    authorizer_name = "pingFedAuth"
+# api_gateway_methods = [
+#   {
+#     resource_path   = "blah"
+#     http_method     = "POST"
+#     # authorization   = "CUSTOM"
+#     authorizer_name = "pingFedAuth"
 
-    integration = {
-      # integration_responses = [{ http_method = "GET" }, { http_method = "DELETE" }]
-      http_method = "POST"
-      uri         = "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:459235286243:function:my-awesome-lambda/invocations"
-    }
-    # method_responses = [{ status_code = "300" }, { response_type = "50" }]
-  }
-]
+#     integration = {
+#       # integration_responses = [{ http_method = "GET" }, { http_method = "DELETE" }]
+#       http_method = "POST"
+#       uri         = "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:459235286243:function:my-awesome-lambda/invocations"
+#     }
+#     # method_responses = [{ status_code = "300" }, { response_type = "50" }]
+#   }
+# ]

@@ -646,7 +646,7 @@ variable api_gateway_methods {
         # build an array of true/false values describing if the validation is passed for each record...  if 'false' found via the index function, return false
         [for method in var.api_gateway_methods : can(lookup(method, "http_method")) ?
           contains(["GET", "POST", "PUT", "DELETE", "HEAD", "OPTIONS", "ANY"], lookup(method, "http_method")) : # if can find http_method true
-        false]                                                                                                  # Required so result should be false - http_method not found
+        true]                                                                                                  # Optional so result should be false - http_method not found
       , false))                                                                                                 # index function lookup value
     : true)                                                                                                     # if var.api_gateway_methods == [] it wasn't passed at all.  Since this is optional, pass validation
     error_message = "Required attribute 'http_method' of 'api_gateway_methods' must be a string equal to GET, POST, PUT, DELETE, HEAD, OPTIONS, ANY."
