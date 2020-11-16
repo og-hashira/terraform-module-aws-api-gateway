@@ -60,14 +60,14 @@ Note:  If you choose to provide the optional objects below, you will have to ref
 |------|-------------|------|---------|:--------:|
 | enabled | Whether to create the REST API or not | `bool` | no | `true` |
 | tags | Tags to be applied to the resource | `map(string)` | no | `{}` |
-| api_gateway | AWS API Gateway Settings | `object` | yes | `null` |
-| api_gateway_deployment | AWS API Gateway Deployment | `object` | no | `null` |
-| api_gateway_stage | AWS API Gateway Stages | `set(any)` | no | `null` |
-| api_gateway_models | AWS API Gateway Models | `set(any)` | no | `null` |
-| api_keys | AWS API Keys | `set(any)` | no | `null` |
-| vpc_links | AWS API Gateway VPC Links | `set(any)` | no | `null` |
-| authorizer_definitions | AWS API Gateway Authorizers | `set(any)` | no | `null` |
-| api_gateway_methods | AWS API Gateway Methods | `set(any)` | no | `null` |
+| api_gateway | AWS API Gateway Settings | `object` | yes | `{}` |
+| api_gateway_deployment | AWS API Gateway Deployment | `object` | no | `{}`  |
+| api_gateway_stages | AWS API Gateway Stages | `set(object)` | no | `[]` |
+| api_gateway_models | AWS API Gateway Models | `set(object)` | no | `[]` |
+| api_keys | AWS API Keys | `set(any)` | no | `[]` |
+| vpc_links | AWS API Gateway VPC Links | `set(object)` | no | `[]` |
+| authorizer_definitions | AWS API Gateway Authorizers | `set(object)` | no | `[]` |
+| api_gateway_methods | AWS API Gateway Methods | `set(object)` | no | `[]` |
 
 ## Outputs
 
@@ -100,14 +100,14 @@ Note:  If you choose to provide the optional objects below, you will have to ref
 | stage_name | Name of the deployment. | `string` | yes | `null` |
 | stage_description | The description of the stage. | `string` | no | Managed by the P&G AWS API Gateway Terraform Module https://github.com/procter-gamble/terraform-module-aws-api-gateway.git |
 | description | The description of the deployment. | `string` | no | Managed by the P&G AWS API Gateway Terraform Module https://github.com/procter-gamble/terraform-module-aws-api-gateway.git |
-| variables | A map that defines variables for the deployment. | `map` | no | `null` |
+| variables | A map that defines variables for the deployment. | `object` | no | `null` |
 
 ### Variable: api_gateway_stage
 | Name | Description | Type | Required  | Default|
 |------|-------------|------|---------|:--------:|
 | stage_name | The name of the stage. If the specified stage already exists, it will be updated to point to the new deployment. If the stage does not exist, a new one will be created and point to this deployment. | `string` | yes | `null` |
 | stage_description | The description of the stage. | `string` | no | Managed by the P&G AWS API Gateway Terraform Module https://github.com/procter-gamble/terraform-module-aws-api-gateway.git |
-| stage_variables | A map that defines variables for the stage. | `map` | no | `null` |
+| stage_variables | A map that defines variables for the stage. | `object` | no | `null` |
 | cache_cluster_enabled | Specifies whether a cache cluster is enabled for the stage. | `bool` | no | `false` |
 | cache_cluster_size | The size of the cache cluster for the stage, if enabled. Allowed values include 0.5, 1.6, 6.1, 13.5, 28.4, 58.2, 118 and 237. | `number` | no | `null` |
 | client_certificate_id | The identifier of a client certificate for the stage. | `string` | no | `null` |
@@ -155,3 +155,41 @@ Note:  If you choose to provide the optional objects below, you will have to ref
 | Name | Description | Type | Required  | Default|
 |------|-------------|------|---------|:--------:|
 | resource_path | The resource path.  It can be up to 5 levels deep, and must not start with a '/'.  e.g. "path1/path2/path3/path4/path5" is ok. | `string` | yes | `null` |
+| http_method | The HTTP Method (GET, POST, PUT, DELETE, HEAD, OPTIONS, ANY). | `string` | no | "POST" |
+| authorizer_id | The authorizer id to be used when the authorization is CUSTOM or COGNITO_USER_POOLS. | `string` | no | `null` |
+| authorization_scopes | The authorization scopes used when the authorization is COGNITO_USER_POOLS. | `string` | no | `null` |
+| api_key_required | Specify if the method requires an API key. | `bool` | no | `false` |
+| request_models | A map of the API models used for the request's content type where key is the content type (e.g. application/json) and value is either Error, Empty (built-in models) or aws_api_gateway_model's name. | `map` | no | `null` |
+| request_validator_id | The ID of a aws_api_gateway_request_validator. | `string` | no | `null` |
+| request_parameters | A map of request query string parameters and headers that should be passed to the integration. For example: request_parameters = {\"method.request.header.X-Some-Header\" = true \"method.request.querystring.some-query-param\" = true} would define that the header X-Some-Header and the query string some-query-param must be provided in the request. | `object` | no | `null` |
+| authorization | The type of authorization used for the method (NONE, CUSTOM, AWS_IAM, COGNITO_USER_POOLS). | `string` | no | "CUSTOM" |
+| authorizer_id | The authorizer's Uniform Resource Identifier (URI). This must be a well-formed Lambda function URI in the form of arn:aws:apigateway:{region}:lambda:path/{service_api}, e.g. arn:aws:apigateway:us-west-2:lambda:path/2015-03-31/functions/. | `string` | no | `null` |
+| authorizer_name | (Optional if not providing authorizer_uri).  The authorizer name that is being created as a part of this module in the authorizer definition. | `string` | no | `null` |
+| authorization_scopes | The authorization scopes used when the authorization is COGNITO_USER_POOLS. | `set(string)` | no | `null` |
+| integration | The integration definition. | `object` | no | `null` |
+| integration http_method | The HTTP method (GET, POST, PUT, DELETE, HEAD, OPTION, ANY) when calling the associated resource. | `string` | no | "GET" |
+| integration integration_http_method |  | `string` | no | "POST" |
+| integration type | The integration input's type. Valid values are HTTP (for HTTP backends), MOCK (not calling any real backend), AWS (for AWS services), AWS_PROXY (for Lambda proxy integration) and HTTP_PROXY (for HTTP proxy integration). An HTTP or HTTP_PROXY integration with a connection_type of VPC_LINK is referred to as a private integration and uses a VpcLink to connect API Gateway to a network load balancer of a VPC. | `string` | no | "AWS_PROXY" |
+| integration connection_type | The integration input's connectionType. Valid values are INTERNET (default for connections through the public routable internet), and VPC_LINK (for private connections between API Gateway and a network load balancer in a VPC). | `string` | no | "INTERNET" |
+| integration connection_id | The id of the VpcLink used for the integration. Required if connection_type is VPC_LINK. | `string` | no | `null` |
+| integration uri | The input's URI. Required if type is AWS, AWS_PROXY, HTTP or HTTP_PROXY. For HTTP integrations, the URI must be a fully formed, encoded HTTP(S) URL according to the RFC-3986 specification . For AWS integrations, the URI should be of the form arn:aws:apigateway:{region}:{subdomain.service|service}:{path|action}/{service_api}. region, subdomain and service are used to determine the right endpoint. e.g. arn:aws:apigateway:eu-west-1:lambda:path/2015-03-31/functions/arn:aws:lambda:eu-west-1:012345678901:function:my-func/invocations. For private integrations, the URI parameter is not used for routing requests to your endpoint, but is used for setting the Host header and for certificate validation. | `string` | no | `null` |
+| integration credentials | The credentials required for the integration. For AWS integrations, 2 options are available. To specify an IAM Role for Amazon API Gateway to assume, use the role's ARN. To require that the caller's identity be passed through from the request, specify the string arn:aws:iam::\*:user/\*. | `string` | no | `null` |
+| integration request_templates | A map of the integration's request templates. | `object` | no | `null` |
+| integration request_parameters | A map of request query string parameters and headers that should be passed to the backend responder. For example: request_parameters = { "integration.request.header.X-Some-Other-Header" = "method.request.header.X-Some-Header" } | `object` | no | `null` |
+| integration passthrough_behavior | The integration passthrough behavior (WHEN_NO_MATCH, WHEN_NO_TEMPLATES, NEVER). Required if request_templates is used. | `string` | no | `null` |
+| integration cache_key_parameters |  | `object` | no | `null` |
+| integration cache_namespace | The integration's cache namespace. | `string` | no | `null` |
+| integration content_handling | Specifies how to handle request payload content type conversions. Supported values are CONVERT_TO_BINARY and CONVERT_TO_TEXT. If this property is not defined, the request payload will be passed through from the method request to integration request without modification, provided that the passthroughBehaviors is configured to support payload pass-through. | `string` | no | `null` |
+| integration timeout_milliseconds | Custom timeout between 50 and 29,000 milliseconds. The default value is 29,000 milliseconds. | `number` | no | 29000 |
+| integration integration_responses | The set of integration_responses for this integration. | `set(object)` | no | `[]` |
+| integration integration_responses http_method | The HTTP method (GET, POST, PUT, DELETE, HEAD, OPTIONS, ANY) | `string` | no | "POST |
+| integration integration_responses status_code | The HTTP status code | `string` | no | "200 |
+| integration integration_responses selection_pattern | Specifies the regular expression pattern used to choose an integration response based on the response from the backend. Setting this to - makes the integration the default one. If the backend is an AWS Lambda function, the AWS Lambda function error header is matched. For all other HTTP and AWS backends, the HTTP status code is matched. | `string` | no | `null` |
+| integration integration_responses response_templates | A map specifying the templates used to transform the integration response body. | `object` | no | `null` |
+| integration integration_responses response_parameters | A map of response parameters that can be read from the backend response. For example: response_parameters = { "method.response.header.X-Some-Header" = "integration.response.header.X-Some-Other-Header" } | `object` | no | `null` |
+| integration integration_responses content_handling | Specifies how to handle request payload content type conversions. Supported values are CONVERT_TO_BINARY and CONVERT_TO_TEXT. If this property is not defined, the response payload will be passed through from the integration response to the method response without modification. | `string` | no | `null` |
+| method_responses status_code | The HTTP status code of the Gateway Response. | `set(object)` | no | "200" |
+| method_responses response_type | The response type of the associated GatewayResponse. | `string` | no | `null` |
+| method_responses response_models | A map of the API models used for the response's content type. | `object` | no | `null` |
+| method_responses response_template | A map specifying the templates used to transform the response body. | `string` | no | `null` |
+| method_responses response_parameters | A map specifying the parameters (paths, query strings and headers) of the Gateway Response. | `object` | no | `null` |
