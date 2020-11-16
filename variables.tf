@@ -37,11 +37,10 @@ variable api_gateway_default {
     minimum_compression_size            = null
     policy                              = null
     custom_domain                       = null
-    hosted_zone                         = null
+    acm_cert_arn                        = null
     api_gateway_client_cert_enabled     = false
     api_gateway_client_cert_description = "Managed by the P&G AWS API Gateway Terraform Module https://github.com/procter-gamble/terraform-module-aws-api-gateway.git"
   }
-
 }
 
 variable api_gateway {
@@ -66,19 +65,19 @@ variable api_gateway {
   // api_gateway not null
   validation {
     condition     = var.api_gateway != null
-    error_message = "Variable object api_gateway must be provided."
+    error_message = "Variable object 'api_gateway' must be provided."
   }
 
   // name
   validation {
     condition     = try(length(tostring(var.api_gateway.name)) > 1)
-    error_message = "Attribute name of api_gateway must be provided."
+    error_message = "Attribute 'name' of 'api_gateway' must be provided."
   }
 
   // description
   validation {
     condition     = can(tostring(lookup(var.api_gateway, "description", "")))
-    error_message = "Optional attribute description of api_gateway must be a string if specified."
+    error_message = "Optional attribute 'description' of 'api_gateway' must be a string if specified."
   }
 
   // binary_media_types
@@ -86,31 +85,42 @@ variable api_gateway {
     condition = can(toset([
       for binary_media_type in lookup(var.api_gateway, "binary_media_types", []) : regex("^[\\-\\w\\.]+/[\\-\\w\\.]+$", binary_media_type)
     ]))
-    error_message = "Optional attribute binary_media_types of api_gateway must be a set of valid MIME types if specified."
+    error_message = "Optional attribute 'binary_media_types' of 'api_gateway' must be a set of valid MIME types if specified."
   }
 
   // minimum_compression_size
   validation {
     condition     = tonumber(lookup(var.api_gateway, "minimum_compression_size", 0)) >= 0 && tonumber(lookup(var.api_gateway, "minimum_compression_size", 0)) <= 10485760
-    error_message = "Optional attribute minimum_compression_size of api_gateway must be non-negative between 0 and 10485760 (inclusive) if specified."
+    error_message = "Optional attribute 'minimum_compression_size' of 'api_gateway' must be non-negative between 0 and 10485760 (inclusive) if specified."
   }
 
   // api_key_source
   validation {
     condition     = contains(["HEADER", "AUTHORIZER"], tostring(lookup(var.api_gateway, "api_key_source", "HEADER")))
-    error_message = "Optional attribute api_key_source of api_gateway must be one of:\n\t- HEADER\n\t- AUTHORIZER\n if specified."
+    error_message = "Optional attribute 'api_key_source' of 'api_gateway' must be one of:\n\t- HEADER\n\t- AUTHORIZER\n if specified."
   }
 
+  // custom_domain
+  validation {
+    condition     = can(tostring(lookup(var.api_gateway, "custom_domain", "")))
+    error_message = "Optional attribute 'custom_domain' of 'api_gateway' must be a string if specified."
+  }
+
+  // acm_cert_arn
+  validation {
+    condition     = can(tostring(lookup(var.api_gateway, "acm_cert_arn", "")))
+    error_message = "Optional attribute 'acm_cert_arn' of 'api_gateway' must be a string if specified."
+  }
   // endpoint_configuration
   validation {
     condition     = can(var.api_gateway.endpoint_configuration) ? length(try(toset(var.api_gateway.endpoint_configuration.types), [])) == 1 : true
-    error_message = "Optional attribute endpoint_configuration of api_gateway must be an object with a 'types' attribute of type set(string) and length 1."
+    error_message = "Optional attribute 'endpoint_configuration' of 'api_gateway' must be an object with a 'types' attribute of type set(string) and length 1."
   }
 
   // endpoint_configuration.types
   validation {
     condition     = can(var.api_gateway.endpoint_configuration.types[0]) ? contains(["EDGE", "REGIONAL", "PRIVATE"], var.api_gateway.endpoint_configuration.types[0]) : true
-    error_message = "Attribute types of api_gateway.endpoint_configuration must be of type set(string) and only include the following values:\n\t- EDGE\n\t- REGIONAL\n\t- PRIVATE\n."
+    error_message = "Attribute types of 'api_gateway.endpoint_configuration' must be of type set(string) and only include the following values:\n\t- EDGE\n\t- REGIONAL\n\t- PRIVATE\n."
   }
 
   // endpoint_configuration.vpc_endpoint_ids
@@ -123,7 +133,7 @@ variable api_gateway {
       ]) :
       length(try(var.api_gateway.endpoint_configuration.vpc_endpoint_ids, [])) == 0
     )
-    error_message = "Attribute types of api_gateway.endpoint_configuration.vpc_endpoint_ids must: \n\t- only be specified when api_gateway.endpoint_configuration.types is PRIVATE\n\t- be a set of VPC Endpoint IDs\n."
+    error_message = "Attribute types of 'api_gateway.endpoint_configuration.vpc_endpoint_ids' must: \n\t- only be specified when api_gateway.endpoint_configuration.types is PRIVATE\n\t- be a set of VPC Endpoint IDs\n."
   }
 }
 
@@ -523,10 +533,10 @@ variable api_gateway_method_default {
       content_handling        = null
       timeout_milliseconds    = 29000
 
-      integration_responses = null
+      integration_responses = []
     }
 
-    method_responses = null
+    method_responses = []
   }
 }
 

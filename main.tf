@@ -45,6 +45,7 @@ api_gateway_methods = [for method in var.api_gateway_methods :
         {}
     )
   ]
+
   ###########################
   ## Resource path parsing ##
   ###########################
@@ -81,10 +82,6 @@ api_gateway_methods = [for method in var.api_gateway_methods :
   authorizers = zipmap([for auth in local.authorizer_definitions : auth.authorizer_name], aws_api_gateway_authorizer.default[*]["id"])
 }
 
-output var {
-  value = local.api_gateway_methods
-}
-
 # Resource    : API Gateway 
 # Description : Terraform resource to create an API Gateway REST API on AWS.
 resource aws_api_gateway_rest_api default {
@@ -117,26 +114,27 @@ resource aws_api_gateway_client_certificate default {
   tags        = var.tags
 }
 
-# # Resource    : Api Gateway Custom Domain Name
-# # Description : Terraform resource to create Api Gateway Custom Domain on AWS.
-# resource aws_api_gateway_domain_name api_domain {
-#   count = length(local.api_gateway.custom_domain) > 0 ? 1 : 0
+# Resource    : Api Gateway Custom Domain Name
+# Description : Terraform resource to create Api Gateway Custom Domain on AWS.
+resource aws_api_gateway_domain_name api_domain {
+  count = local.api_gateway.custom_domain != null && local.api_gateway.acm_cert_arn != null ? 1 : 0
 
-#   certificate_arn = module.acm_certificate.arn[count.index]
-#   domain_name     = local.api_gateway.custom_domain
-# }
+  certificate_arn = local.api_gateway.acm_cert_arn
+  domain_name     = local.api_gateway.custom_domain
+}
 
-# # Resource    : Api Gateway Base Path Mapping
-# # Description : Terraform resource to create Api Gateway base path mapping on AWS.
-# resource aws_api_gateway_base_path_mapping test {
-#   count      = length(local.api_gateway.custom_domain) > 0 ? 1 : 0
-#   depends_on = [aws_api_gateway_deployment.default]
+# Resource    : Api Gateway Base Path Mapping
+# Description : Terraform resource to create Api Gateway base path mapping on AWS.
+resource aws_api_gateway_base_path_mapping test {
+  count      = local.api_gateway.custom_domain != null && local.api_gateway.acm_cert_arn != null ? 1 : 0
 
-#   api_id = aws_api_gateway_rest_api.default.*.id[0]
-#   // TODO:  Which stage?
-#   // stage_name  = var.stage_name
-#   domain_name = local.api_gateway.custom_domain
-# }
+  api_id = aws_api_gateway_rest_api.default.*.id[0]
+  // TODO:  Which stage?
+  // stage_name  = var.stage_name
+  domain_name = local.api_gateway.custom_domain
+
+  depends_on = [aws_api_gateway_deployment.default]
+}
 
 # Resource    : Api Gateway Deployment
 # Description : Terraform resource to create Api Gateway Deployment on AWS.
@@ -328,9 +326,9 @@ resource aws_api_gateway_method_response default {
   rest_api_id         = aws_api_gateway_rest_api.default.*.id[0]
   resource_id         = lookup(local.resource_method_map, element(local.api_gateway_methods, count.index).resource_path)
   http_method         = aws_api_gateway_method.default.*.http_method[count.index]
-  status_code         = can(element(var.api_gateway_methods, count.index).method_responses) ? element(element(var.api_gateway_methods, count.index).method_responses, 0).status_code : 200
-  response_models     = can(element(var.api_gateway_methods, count.index).method_responses) ? element(element(var.api_gateway_methods, count.index).method_responses, 0).response_models : null
-  response_parameters = can(element(var.api_gateway_methods, count.index).method_responses) ? element(element(var.api_gateway_methods, count.index).method_responses, 0).response_parameters : null
+  status_code         = can(element(var.api_gateway_methods, count.index).method_responses) && can(element(can(element(var.api_gateway_methods, count.index).method_responses, 0))) ? element(element(var.api_gateway_methods, count.index).method_responses, 0).status_code : 200
+  response_models     = can(element(var.api_gateway_methods, count.index).method_responses) && can(element(can(element(var.api_gateway_methods, count.index).method_responses, 0))) ? element(element(var.api_gateway_methods, count.index).method_responses, 0).response_models : null
+  response_parameters = can(element(var.api_gateway_methods, count.index).method_responses) && can(element(can(element(var.api_gateway_methods, count.index).method_responses, 0))) ? element(element(var.api_gateway_methods, count.index).method_responses, 0).response_parameters : null
 }
 
 # Resource    : Api Gateway Integration
@@ -367,9 +365,11 @@ resource aws_api_gateway_integration_response default {
   http_method = aws_api_gateway_method.default.*.http_method[count.index]
   status_code = aws_api_gateway_method_response.default.*.status_code[count.index]
 
+  # TODO:  Figure this out!
   # request_parameters      = element(local.api_gateway_methods, count.index).integration.request_parameters
   # request_templates       = element(local.api_gateway_methods, count.index).integration.request_templates
   # content_handling        = element(local.api_gateway_methods, count.index).integration.content_handling
+
 }
 
 resource aws_api_gateway_integration options_integration {

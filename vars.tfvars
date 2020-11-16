@@ -7,8 +7,8 @@ api_gateway = {
   # minimum_compression_size            = -1
   # api_key_source                      = "HEADER"
   # type                                = ["EDGE"]
-  # custom_domain = "api.bitlocker.np.pgcloud.com"
-  # hosted_zone   = "np.pgcloud.com"
+  custom_domain = "api.bitlocker.np.pgcloud.com"
+  # acm_cert_arn   = ""
   # api_gateway_client_cert_enabled     = false
   # api_gateway_client_cert_description = ""
 }
@@ -115,7 +115,7 @@ api_gateway_methods = [
     authorizer_name = "pingFedAuth"
 
     integration = {
-      integration_responses = [{ http_method = "GET" }, { http_method = "DELETE" }]
+      # integration_responses = [{ http_method = "GET" }, { http_method = "DELETE" }]
       http_method = "POST"
       uri         = "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:459235286243:function:my-awesome-lambda/invocations"
     }
@@ -132,6 +132,6 @@ api_gateway_methods = [
       http_method           = "POST"
       uri                   = "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:459235286243:function:my-awesome-lambda/invocations"
     }
-    method_responses = [{ status_code = "300" }, { response_type = "50" }]
+    # method_responses = [{ status_code = "300" }, { response_type = "50" }]
   }
 ]
