@@ -16,9 +16,10 @@
 
 ## Prerequisites
 
-This module has a dependency: 
+This module has the following dependencies: 
 
 - [Terraform 0.13](https://learn.hashicorp.com/terraform/getting-started/install.html)
+- Hashicorp AWS Provider ~> 3.0
 
 ## Limitations
 
