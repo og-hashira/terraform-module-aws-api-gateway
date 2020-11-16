@@ -54,11 +54,11 @@ Here is an example of how you can use this module in your inventory structure:
 
 ## Inputs
 
-| Name | Description | Type | Default | Required |
+| Name | Description | Type | Required | Default |
 |------|-------------|------|---------|:--------:|
-| enabled | Whether to create the REST API or not | `bool` | `true` | no |
-| tags | Tags to be applied to the resource | `map(string)` | `{}` | no |
-| api_gateway | AWS API Gateway Settings | `object` | `null` | yes |
+| enabled | Whether to create the REST API or not | `bool` | no | `true` |
+| tags | Tags to be applied to the resource | `map(string)` | no | `{}` |
+| api_gateway | AWS API Gateway Settings | `object` | yes | `null` |
 
 ## Outputs
 
