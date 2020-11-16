@@ -266,6 +266,8 @@ Note:  If you choose to provide the optional objects below, you will have to ref
 | id | The ID of the REST API. |
 | execution_arn | The Execution ARN of the REST API. | 
 
+
+
 ## Detailed Input Data Structures
 
 ### Variable: api_gateway
