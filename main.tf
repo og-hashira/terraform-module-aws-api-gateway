@@ -108,9 +108,9 @@ resource aws_api_gateway_rest_api default {
 # Resource    : Api Gateway Client Certificate
 # Description : Terraform resource to create Api Gateway Client Certificate on AWS.
 resource aws_api_gateway_client_certificate default {
-  count = local.api_gateway.api_gateway_client_cert_enabled == true ? 1 : 0
+  count = local.api_gateway.client_cert_enabled == true ? 1 : 0
 
-  description = local.api_gateway.api_gateway_client_cert_description
+  description = local.api_gateway.client_cert_description
   tags        = var.tags
 }
 
@@ -160,7 +160,7 @@ resource aws_api_gateway_stage default {
   stage_name            = element(local.api_gateway_stages, count.index).stage_name
   cache_cluster_enabled = element(local.api_gateway_stages, count.index).cache_cluster_enabled
   cache_cluster_size    = element(local.api_gateway_stages, count.index).cache_cluster_size
-  client_certificate_id = element(local.api_gateway_stages, count.index).client_certificate_id != null ? element(local.api_gateway_stages, count.index).client_certificate_id : (local.api_gateway.api_gateway_client_cert_enabled ? aws_api_gateway_client_certificate.default.*.id[0] : "")
+  client_certificate_id = element(local.api_gateway_stages, count.index).client_certificate_id != null ? element(local.api_gateway_stages, count.index).client_certificate_id : (local.api_gateway.client_cert_enabled ? aws_api_gateway_client_certificate.default.*.id[0] : "")
   description           = element(local.api_gateway_stages, count.index).stage_description
   documentation_version = element(local.api_gateway_stages, count.index).documentation_version
   variables             = element(local.api_gateway_stages, count.index).stage_variables

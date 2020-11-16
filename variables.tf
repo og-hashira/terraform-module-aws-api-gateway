@@ -38,8 +38,8 @@ variable api_gateway_default {
     policy                              = null
     custom_domain                       = null
     acm_cert_arn                        = null
-    api_gateway_client_cert_enabled     = false
-    api_gateway_client_cert_description = "Managed by the P&G AWS API Gateway Terraform Module https://github.com/procter-gamble/terraform-module-aws-api-gateway.git"
+    client_cert_enabled     = false
+    client_cert_description = "Managed by the P&G AWS API Gateway Terraform Module https://github.com/procter-gamble/terraform-module-aws-api-gateway.git"
   }
 }
 
