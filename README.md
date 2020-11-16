@@ -23,18 +23,31 @@ This module has a dependency:
 ## Limitations
 
 - Currently this module only supports resource paths nested 5 levels deep, e.g. "endpoint"/one/two/three/four/five.  Adding additional levels is trivial if the use case ever arises.  Stopping at 5 for now to keep the code more concise.
-- Although you can specify a list of method_responses and integration_responses, and these settings have proper default overrides built into the validation process, these settings are mostly ignored for now and instead the resources are hard coded for "sane defaults".  This is a TODO for the future.
+- Although you can specify a list of 'method_responses' and 'integration_responses' as a part of 'api_gateway_methods', and these settings have proper default overrides built into the validation process, these settings are mostly ignored for now and instead the resources are hard coded for "sane defaults".  This is a TODO for the future.
 
-<!-- ## Examples
+## Examples
 
 Here is an example of how you can use this module in your inventory structure:
 ### Basic Example
 ```hcl
-  module "acm_certificate" {
-    source         = "git::git@github.com:procter-gamble/terraform-module-aws-acm-certificate.git"
-    domain         = "test.np.pgcloud.com"
-    hosted_zone_id = "<hosted_zone_id>"
-    tags           = var.tags
+  module "api_gateway" {
+    source = "git@github.com:procter-gamble/terraform-module-aws-api-gateway"
+    
+    api_gateway = {
+      name = "api-gateway"
+    }
+
+    api_gateway_methods = [
+      {
+        resource_path   = "myPath"
+
+        integration = {
+          uri         = "<valid_lambda_function_invoke_arn>"
+        }
+      }
+    ]
+
+    tags    = var.tags
   }
 ```
 
@@ -43,12 +56,15 @@ Here is an example of how you can use this module in your inventory structure:
 
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
+<!-- 
 | domain | The domain associated with the certificate. | `string` | `` | yes |
 | hosted_zone_id | The id of the Route53 hosted zone. | `string` | `` | yes |
 | tags | Tags to be applied to the resource | map(string) | {} | no |
+-->
 
 ## Outputs
 
 | Name | Description |
 |------|-------------|
-| arn | The arn of the Certificate. | -->
+| id | The ID of the REST API. |
+| execution_arn | The Execution ARN of the REST API. | 
