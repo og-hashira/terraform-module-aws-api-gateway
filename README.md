@@ -70,17 +70,17 @@ Here is an example of how you can use this module in your inventory structure:
 ## Input Data Structures
 
 ### Variable: api_gateway
-| Name | Description | Type | Default | Required |
+| Name | Description | Type | Required  | Default|
 |------|-------------|------|---------|:--------:|
-| name | Name of the REST API | `string` | `null` | yes |
-| api_key_source | The source of the API key for requests. Valid values are HEADER (default) and AUTHORIZER. | `string` | `null` | no |
-| binary_media_types | The set of binary media types supported by the RestApi. By default, the RestApi supports only UTF-8-encoded text payloads. | `set(string)` | `null` | no |
-| description | The description of the REST API. | `string` | Managed by the P&G AWS API Gateway Terraform Module https://github.com/procter-gamble/terraform-module-aws-api-gateway.git | no |
-| endpoint_configuration.types | This resource currently only supports managing a single value. Valid values: EDGE, REGIONAL or PRIVATE | `set(string)` | `null` | no |
-| endpoint_configuration.vpc_endpoint_ids | A list of VPC Endpoint Ids. | `list(string)` | `null` | no |
-| minimum_compression_size | Minimum response size to compress for the REST API. Integer between -1 and 10485760 (10MB). Setting a value greater than -1 will enable compression, -1 disables compression (default). | `number` | `null` | no |
-| custom_domain | The custom domain to associate to this REST API. | `string` | `null` | no |
-| acm_cert_arn | The AWS ACM Certificate arn to associate to this REST API custom domain. | `string` | `null` | no |
-| api_gateway_client_cert_enabled | Whether or not to generate a client certificate for this REST API. | `string` | `false` | no |
-| api_gateway_client_cert_description | Managed by the P&G AWS API Gateway Terraform Module https://github.com/procter-gamble/terraform-module-aws-api-gateway.git | `string` | `null` | no |
-| policy | The IAM Policy applied to the REST API. | `string` | `null` | no |
+| name | Name of the REST API | `string` | yes | `null` |
+| api_key_source | The source of the API key for requests. Valid values are HEADER (default) and AUTHORIZER. | `string` | no | `null` |
+| binary_media_types | The set of binary media types supported by the RestApi. By default, the RestApi supports only UTF-8-encoded text payloads. | `set(string)` | no | `null` |
+| description | The description of the REST API. | `string` | no | Managed by the P&G AWS API Gateway Terraform Module https://github.com/procter-gamble/terraform-module-aws-api-gateway.git |
+| endpoint_configuration.types | This resource currently only supports managing a single value. Valid values: EDGE, REGIONAL or PRIVATE | `set(string)` | no | `null` |
+| endpoint_configuration.vpc_endpoint_ids | A list of VPC Endpoint Ids. | `list(string)` | no | `null` |
+| minimum_compression_size | Minimum response size to compress for the REST API. Integer between -1 and 10485760 (10MB). Setting a value greater than -1 will enable compression, -1 disables compression (default). | `number` | no | `null` |
+| custom_domain | The custom domain to associate to this REST API. | `string` | no | `null` |
+| acm_cert_arn | The AWS ACM Certificate arn to associate to this REST API custom domain. | `string` | no | `null` |
+| api_gateway_client_cert_enabled | Whether or not to generate a client certificate for this REST API. | `string` | no | `false` |
+| api_gateway_client_cert_description | Managed by the P&G AWS API Gateway Terraform Module https://github.com/procter-gamble/terraform-module-aws-api-gateway.git | `string` | no | `null` |
+| policy | The IAM Policy applied to the REST API. | `string` | no | `null` |
