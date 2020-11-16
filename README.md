@@ -52,6 +52,39 @@ Here is an example of how you can use this module in your inventory structure:
   }
 ```
 
+### Basic Example with Lambda Authorizers and a Custom Domain
+```hcl
+  module "api_gateway" {
+    source = "git@github.com:procter-gamble/terraform-module-aws-api-gateway"
+    providers = { aws = aws }
+
+    api_gateway = {
+      name = "api-gateway"
+      custom_domain = "api.myapp.np.pgcloud.com"
+      acm_cert_arn = <valid arn string>
+    }
+
+    authorizer_definitions = [
+      {
+        authorizer_name = "pingFedAuth"
+        authorizer_uri  = <valid authorizer lanbda arn>
+      }
+    ]
+
+    api_gateway_methods = [
+      {
+        resource_path   = "getBitlockerKey"
+        authorizer_name = "pingFedAuth"
+
+        integration = {
+          uri         = <valid lambda arn>
+        }
+      }
+    ]
+
+    tags = var.tags
+  }
+```
 
 ## Inputs
 
