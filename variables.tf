@@ -25,6 +25,25 @@ variable tags {
   }
 }
 
+variable api_gateway_default {
+  description = "AWS API Gateway Settings default."
+  type        = any
+  default = {
+    name                                = null
+    api_key_source                      = null
+    binary_media_types                  = null
+    description                         = "Managed by the P&G AWS API Gateway Terraform Module https://github.com/procter-gamble/terraform-module-aws-api-gateway.git"
+    endpoint_configuration              = null
+    minimum_compression_size            = null
+    policy                              = null
+    custom_domain                       = null
+    hosted_zone                         = null
+    api_gateway_client_cert_enabled     = false
+    api_gateway_client_cert_description = "Managed by the P&G AWS API Gateway Terraform Module https://github.com/procter-gamble/terraform-module-aws-api-gateway.git"
+  }
+
+}
+
 variable api_gateway {
   description = "AWS API Gateway Settings."
   type        = any
@@ -108,7 +127,18 @@ variable api_gateway {
   }
 }
 
-variable "api_gateway_deployment" {
+variable "api_gateway_deployment_default" {
+  description = "AWS API Gateway deployment default."
+  type        = any
+  default = {
+    stage_name        = null
+    stage_description = "Managed by the P&G AWS API Gateway Terraform Module https://github.com/procter-gamble/terraform-module-aws-api-gateway.git"
+    description       = "Managed by the P&G AWS API Gateway Terraform Module https://github.com/procter-gamble/terraform-module-aws-api-gateway.git"
+    variables         = null
+  }
+}
+
+variable api_gateway_deployment {
   description = "AWS API Gateway deployment."
   default     = null
   type        = any
@@ -146,10 +176,26 @@ variable "api_gateway_deployment" {
   }
 }
 
-variable "api_gateway_stages" {
+variable api_gateway_stage_default {
+  description = "AWS API Gateway stage default."
+  type        = any
+  default = {
+    stage_name            = null
+    access_log_settings   = null
+    cache_cluster_enabled = false
+    cache_cluster_size    = null
+    client_certificate_id = null
+    documentation_version = null
+    stage_description     = "Managed by the P&G AWS API Gateway Terraform Module https://github.com/procter-gamble/terraform-module-aws-api-gateway.git"
+    stage_variables       = null
+    xray_tracing_enabled  = false
+  }
+}
+
+variable api_gateway_stages {
   description = "AWS API Gateway stage."
   default     = []
-  type        = set(any)
+  type        = any
   /*
   type = list(object({
     stage_name            = string (required) - The name of the stage. If the specified stage already exists, it will be updated to point to the new deployment. If the stage does not exist, a new one will be created and point to this deployment.
@@ -218,7 +264,18 @@ variable "api_gateway_stages" {
   // TODO: access_log_settings
 }
 
-variable "api_gateway_models" {
+variable api_gateway_model_default {
+  description = "AWS API Gateway model default."
+  type        = any
+  default = {
+    name         = null
+    description  = "Managed by the P&G AWS API Gateway Terraform Module https://github.com/procter-gamble/terraform-module-aws-api-gateway.git"
+    content_type = "application/json"
+    schema       = "{\"type\":\"object\"}"
+  }
+}
+
+variable api_gateway_models {
   description = "AWS API Gateway models."
   default     = []
   type        = set(any)
@@ -256,10 +313,21 @@ variable "api_gateway_models" {
   }
 }
 
-variable "api_keys" {
+variable api_keys_default {
+  description = "AWS API Gateway API Keys default"
+  type        = any
+  default = {
+    key_name        = null
+    key_description = "Managed by the P&G AWS API Gateway Terraform Module https://github.com/procter-gamble/terraform-module-aws-api-gateway.git"
+    enabled         = true
+    value           = null
+  }
+}
+
+variable api_keys {
   description = "AWS API Gateway API Keys."
   default     = []
-  type        = set(any)
+  type        = any
   /*
   type = list(object({
     key_name        = string (required) - The name of the API key.
@@ -294,10 +362,21 @@ variable "api_keys" {
   }
 }
 
-variable "vpc_links" {
+variable vpc_link_default {
+  description = "AWS API Gateway VPC link defaults."
+  type        = any
+  default = {
+    vpc_link_name        = null
+    vpc_link_description = "Managed by the P&G AWS API Gateway Terraform Module https://github.com/procter-gamble/terraform-module-aws-api-gateway.git"
+    vpc_link_name        = null
+    target_arns          = null
+  }
+}
+
+variable vpc_links {
   description = "AWS API Gateway VPC links."
   default     = []
-  type        = set(any)
+  type        = any
   /*
   type = list(object({
     vpc_link_name        = string (required) - The name used to label and identify the VPC link.
@@ -325,10 +404,26 @@ variable "vpc_links" {
   }
 }
 
-variable "authorizer_definitions" {
+variable authorizer_definition_default {
+  description = "AWS API Gateway authorizer default."
+  type        = any
+
+  default = {
+    authorizer_name                  = null
+    authorizer_uri                   = null
+    identity_source                  = "method.request.header.Authorization"
+    identity_validation_expression   = null
+    authorizer_result_ttl_in_seconds = 0
+    authorizer_type                  = "TOKEN"
+    authorizer_credentials           = null
+    provider_arns                    = null
+  }
+}
+
+variable authorizer_definitions {
   description = "AWS API Gateway authorizer."
   default     = []
-  type        = set(any)
+  type        = any
 
   /*
   type = list(object({
@@ -393,13 +488,13 @@ variable "authorizer_definitions" {
   }
 }
 
-variable "api_gateway_method_default" {
+variable api_gateway_method_default {
   description = "AWS API Gateway methods default."
+  type        = any
 
-  type = any
   default = {
     resource_path        = null
-    http_method          = null
+    http_method          = "POST"
     authorizer_id        = null
     authorization_scopes = null
     api_key_required     = false
@@ -413,7 +508,7 @@ variable "api_gateway_method_default" {
     authorization_scopes = null
 
     integration = {
-      http_method             = "POST"
+      http_method             = "GET"
       integration_http_method = "POST"
       type                    = "AWS_PROXY"
       connection_type         = "INTERNET"
@@ -427,29 +522,41 @@ variable "api_gateway_method_default" {
       cache_namespace         = null
       content_handling        = null
       timeout_milliseconds    = 29000
-      integration_response = {
-        http_method         = "POST"
-        status_code         = "200"
-        selection_pattern   = null
-        response_templates  = null
-        response_parameters = null
-        content_handling    = null
-      }
+
+      integration_responses = null
     }
-    method_response = {
-      status_code         = "200"
-      response_type       = null
-      response_models     = null
-      response_template   = null
-      response_parameters = null
-    }
+
+    method_responses = null
   }
 }
 
-variable "api_gateway_methods" {
+variable integration_response_default {
+  type = any
+  default = {
+    http_method         = "POST"
+    status_code         = "200"
+    selection_pattern   = null
+    response_templates  = null
+    response_parameters = null
+    content_handling    = null
+  }
+}
+
+variable method_response_default {
+  type = any
+  default = {
+    status_code         = "200"
+    response_type       = null
+    response_models     = null
+    response_template   = null
+    response_parameters = null
+  }
+}
+
+variable api_gateway_methods {
   description = "AWS API Gateway methods."
   default     = []
-  type        = set(any)
+  type        = any
   /*
   type = list(object({
     resource_path        = string (required) - The path of this API resource.  Do not start with a /"
