@@ -22,7 +22,7 @@ This module has a dependency:
 
 ## Limitations
 
-- Currently this module only supports resource paths nested 5 levels deep, e.g. "endpoint"one/two/three/four/five.  Adding additional levels is trivial if the use case ever arises.  Stopping at 5 for now to keep the code more concise.
+- Currently this module only supports resource paths nested 5 levels deep, e.g. "endpoint/one/two/three/four/five".  Adding additional levels is trivial if the use case ever arises.  Stopping at 5 for now to keep the code more concise.
 - Although you can specify a list of 'method_responses' and 'integration_responses' as a part of 'api_gateway_methods', and these settings have proper default overrides built into the validation process, these settings are mostly ignored for now and instead the resources are hard coded for "sane defaults".  This is a TODO for the future.
 
 ## Examples
