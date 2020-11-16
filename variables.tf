@@ -378,7 +378,6 @@ variable vpc_link_default {
   default = {
     vpc_link_name        = null
     vpc_link_description = "Managed by the P&G AWS API Gateway Terraform Module https://github.com/procter-gamble/terraform-module-aws-api-gateway.git"
-    vpc_link_name        = null
     target_arns          = null
   }
 }

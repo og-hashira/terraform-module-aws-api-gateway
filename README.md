@@ -54,12 +54,20 @@ Here is an example of how you can use this module in your inventory structure:
 
 ## Inputs
 
+Note:  If you choose to provide the optional objects below, you will have to reference the section below called "Detailed Input Structures" to find which attributes are required for the object.
+
 | Name | Description | Type | Required | Default |
 |------|-------------|------|---------|:--------:|
 | enabled | Whether to create the REST API or not | `bool` | no | `true` |
 | tags | Tags to be applied to the resource | `map(string)` | no | `{}` |
 | api_gateway | AWS API Gateway Settings | `object` | yes | `null` |
 | api_gateway_deployment | AWS API Gateway Deployment | `object` | no | `null` |
+| api_gateway_stage | AWS API Gateway Stages | `set(any)` | no | `null` |
+| api_gateway_models | AWS API Gateway Models | `set(any)` | no | `null` |
+| api_keys | AWS API Keys | `set(any)` | no | `null` |
+| vpc_links | AWS API Gateway VPC Links | `set(any)` | no | `null` |
+| authorizer_definitions | AWS API Gateway Authorizers | `set(any)` | no | `null` |
+| api_gateway_methods | AWS API Gateway Methods | `set(any)` | no | `null` |
 
 ## Outputs
 
@@ -93,3 +101,57 @@ Here is an example of how you can use this module in your inventory structure:
 | stage_description | The description of the stage. | `string` | no | Managed by the P&G AWS API Gateway Terraform Module https://github.com/procter-gamble/terraform-module-aws-api-gateway.git |
 | description | The description of the deployment. | `string` | no | Managed by the P&G AWS API Gateway Terraform Module https://github.com/procter-gamble/terraform-module-aws-api-gateway.git |
 | variables | A map that defines variables for the deployment. | `map` | no | `null` |
+
+### Variable: api_gateway_stage
+| Name | Description | Type | Required  | Default|
+|------|-------------|------|---------|:--------:|
+| stage_name | The name of the stage. If the specified stage already exists, it will be updated to point to the new deployment. If the stage does not exist, a new one will be created and point to this deployment. | `string` | yes | `null` |
+| stage_description | The description of the stage. | `string` | no | Managed by the P&G AWS API Gateway Terraform Module https://github.com/procter-gamble/terraform-module-aws-api-gateway.git |
+| stage_variables | A map that defines variables for the stage. | `map` | no | `null` |
+| cache_cluster_enabled | Specifies whether a cache cluster is enabled for the stage. | `bool` | no | `false` |
+| cache_cluster_size | The size of the cache cluster for the stage, if enabled. Allowed values include 0.5, 1.6, 6.1, 13.5, 28.4, 58.2, 118 and 237. | `number` | no | `null` |
+| client_certificate_id | The identifier of a client certificate for the stage. | `string` | no | `null` |
+| documentation_version | The version of the associated API documentation. | `string` | no | `null` |
+| xray_tracing_enabled | Specifies whether to enable xray_tracing. | `bool` | no | `false` |
+| access_log_settings destination_arn | ARN of the log group to send the logs to. Automatically removes trailing :* if present. | `string` | no | `null` |
+| access_log_settings format | The formatting and values recorded in the logs. | `string` | no | `null` |
+
+### Variable: api_gateway_models
+| Name | Description | Type | Required  | Default|
+|------|-------------|------|---------|:--------:|
+| name | The name of the model. | `string` | yes | `null` |
+| description | The description of the model. | `string` | no | Managed by the P&G AWS API Gateway Terraform Module https://github.com/procter-gamble/terraform-module-aws-api-gateway.git |
+| content_type | The content_type of the model. | `string` | no | "application/json" |
+| schema | The schea of the model. | `string` | no | "{\"type\":\"object\"}" |
+
+### Variable: api_keys
+| Name | Description | Type | Required  | Default|
+|------|-------------|------|---------|:--------:|
+| key_name | The name of the API key. | `string` | yes | `null` |
+| key_description | The description of the API key. | `string` | no | Managed by the P&G AWS API Gateway Terraform Module https://github.com/procter-gamble/terraform-module-aws-api-gateway.git |
+| enabled | Whether the API Key is enabled. | `bool` | no | true |
+| value | The value of the key (if not auto generated) | `string` | no | `null` |
+
+### Variable: vpc_links
+| Name | Description | Type | Required  | Default|
+|------|-------------|------|---------|:--------:|
+| vpc_link_name | The name used to label and identify the VPC link. | `string` | yes | `null` |
+| vpc_link_description | The description of the VPC link. | `string` | no | Managed by the P&G AWS API Gateway Terraform Module https://github.com/procter-gamble/terraform-module-aws-api-gateway.git |
+| target_arns | The list of network load balancer arns in the VPC targeted by the VPC link. Currently AWS only supports 1 target. | `set(string)` | no | `null` |
+
+### Variable: authorizer_definitions
+| Name | Description | Type | Required  | Default|
+|------|-------------|------|---------|:--------:|
+| authorizer_name | The name of the authorizer. | `string` | yes | `null` |
+| authorizer_uri | The authorizer's Uniform Resource Identifier (URI). This must be a well-formed Lambda function URI in the form of arn:aws:apigateway:{region}:lambda:path/{service_api}, e.g. arn:aws:apigateway:us-west-2:lambda:path/2015-03-31/functions/. | `string` | yes | `null` |
+| identity_source | The source of the identity in an incoming request. | `string` | no | "method.request.header.Authorization" |
+| identity_validation_expression | A validation expression for the incoming identity. For TOKEN type, this value should be a regular expression. The incoming token from the client is matched against this expression, and will proceed if the token matches. If the token doesn't match, the client receives a 401 Unauthorized response. | `string` | no | `null` |
+| authorizer_result_ttl_in_seconds | The TTL of cached authorizer results in seconds. | `number` | no | 0 |
+| authorizer_type | The type of the authorizer. Possible values are TOKEN for a Lambda function using a single authorization token submitted in a custom header, REQUEST for a Lambda function using incoming request parameters, or COGNITO_USER_POOLS for using an Amazon Cognito user pool. Defaults to TOKEN. | `string` | no | "TOKEN" |
+| authorizer_credentials | The credentials required for the authorizer. To specify an IAM Role for API Gateway to assume, use the IAM Role ARN. | `string` | no | `null` |
+| provider_arns | Required for type COGNITO_USER_POOLS) A list of the Amazon Cognito user pool ARNs. Each element is of this format: arn:aws:cognito-idp:{region}:{account_id}:userpool/{user_pool_id}. | `set(string)` | no | `null` |
+
+### Variable: api_gateway_methods
+| Name | Description | Type | Required  | Default|
+|------|-------------|------|---------|:--------:|
+| resource_path | The resource path.  It can be up to 5 levels deep, and must not start with a '/'.  e.g. "path1/path2/path3/path4/path5" is ok. | `string` | yes | `null` |
