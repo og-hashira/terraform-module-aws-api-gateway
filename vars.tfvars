@@ -88,49 +88,21 @@ authorizer_definitions = [
   {
     authorizer_name = "pingFedAuth"
     authorizer_uri  = "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:459235286243:function:my-authorizor-lambda/invocations"
-    # identity_source                  = ""
-    # identity_validation_expression   = ""
-    # authorizer_result_ttl_in_seconds = 700
-    # authorizer_type                  = "TOKEN"
-    # authorizer_credentials           = ""
-    provider_arns = []
-  },
-  #   {
-  #     authorizer_name                  = "pingFedAuth2"
-  #     authorizer_uri                   = "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:459235286243:function:my-authorizor-lambda/invocations"
-  #     # identity_source                  = ""
-  #     # identity_validation_expression   = ""
-  #     # authorizer_result_ttl_in_seconds = 55
-  #     # authorizer_type                  = "REQUEST"
-  #     # authorizer_credentials           = ""
-  #     provider_arns                    = []
-  #   }
+    # provider_arns = []
+  }
 ]
 
 api_gateway_methods = [
   {
     resource_path   = "blah"
     http_method     = "POST"
-    authorization   = "CUSTOM"
+    # authorization   = "CUSTOM"
     authorizer_name = "pingFedAuth"
 
     integration = {
       # integration_responses = [{ http_method = "GET" }, { http_method = "DELETE" }]
       http_method = "POST"
       uri         = "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:459235286243:function:my-awesome-lambda/invocations"
-    }
-    # method_responses = [{ status_code = "300" }, { response_type = "50" }]
-  },
-  {
-    resource_path   = "blah/blah2/blah"
-    http_method     = "POST"
-    authorization   = "CUSTOM"
-    authorizer_name = "pingFedAuth"
-
-    integration = {
-      # integration_responses = [{ http_method = "GET" }, { http_method = "DELETE" }]
-      http_method           = "POST"
-      uri                   = "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:459235286243:function:my-awesome-lambda/invocations"
     }
     # method_responses = [{ status_code = "300" }, { response_type = "50" }]
   }

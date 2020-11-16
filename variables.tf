@@ -493,7 +493,20 @@ variable authorizer_definitions {
 
   // provider_arns
   validation {
-    condition     = var.authorizer_definitions != [] ? ! can(index([for auth in var.authorizer_definitions : can(toset(lookup(auth, "provider_arns")))], false)) : true
+    condition = (var.authorizer_definitions != [] ? 
+                  ! can(index(
+                        [for auth in var.authorizer_definitions : 
+                          can(auth.provider_arns) ? 
+                            can(toset(auth.provider_arns)): true]
+                        , false))  : # if authorizer_definitions are provided validate provider_arns
+                true) # authorizer_definitions is optional, so return true
+    # condition     = (var.authorizer_definitions != [] ? 
+    #                   ! can(index(
+    #                         [for auth in var.authorizer_definitions : 
+    #                           can(lookup(auth, "provider_arns", null)) ? 
+    #                             can(toset(lookup(auth, "provider_arns"))): true]
+    #                         , false)) 
+    #                   : true)
     error_message = "Optional attribute 'provider_arns' of 'authorizer_definitions' must be a set of at least one string."
   }
 }
@@ -512,7 +525,7 @@ variable api_gateway_method_default {
     request_validator_id = null
     request_parameters   = null
 
-    authorization        = null
+    authorization        = "CUSTOM"
     authorizer_id        = null
     authorizer_name      = null
     authorization_scopes = null
@@ -642,8 +655,8 @@ variable api_gateway_methods {
 
   // authorization     
   validation {
-    condition     = var.api_gateway_methods != [] ? ! can(index([for method in var.api_gateway_methods : can(lookup(method, "authorization")) ? contains(["NONE", "CUSTOM", "AWS_IAM", "COGNITO_USER_POOLS"], lookup(method, "authorization")) : false], false)) : true
-    error_message = "Required attribute 'authorization' of 'api_gateway_methods' must be a string equal to NONE, CUSTOM, AWS_IAM, COGNITO_USER_POOLS."
+    condition     = var.api_gateway_methods != [] ? ! can(index([for method in var.api_gateway_methods : can(lookup(method, "authorization")) ? contains(["NONE", "CUSTOM", "AWS_IAM", "COGNITO_USER_POOLS"], lookup(method, "authorization")) : true], false)) : true
+    error_message = "Optional attribute 'authorization' of 'api_gateway_methods' must be a string equal to NONE, CUSTOM, AWS_IAM, COGNITO_USER_POOLS."
   }
 
   // authorizer_id
