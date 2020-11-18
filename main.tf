@@ -35,7 +35,7 @@ locals {
   authorizer_definitions = var.authorizer_definitions != null ? [for auth in var.authorizer_definitions : merge(var.authorizer_definition_default, auth)] : null
 
   // api_gateway_methods
-api_gateway_methods = [for method in var.api_gateway_methods :
+  api_gateway_methods = [for method in var.api_gateway_methods :
     merge(var.api_gateway_method_default,
       method,
       { for key, value in var.api_gateway_method_default :
@@ -146,7 +146,7 @@ resource aws_route53_record api_dns {
   count   = local.api_gateway.custom_domain != null ? 1 : 0
   name    = aws_api_gateway_domain_name.api_domain.*.domain_name[0]
   type    = "A"
-  zone_id = var.hosted_zone_id
+  zone_id = local.api_gateway.hosted_zone_id
 
   alias {
     evaluate_target_health = true
