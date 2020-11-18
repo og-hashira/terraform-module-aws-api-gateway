@@ -4,11 +4,6 @@ variable "enabled" {
   description = "Whether to create rest api."
 }
 
-variable "hosted_zone_id" {
-  type        = string
-  description = "The hosted zone ID to create the DNS record for the API"
-}
-
 variable tags {
   type        = map(string)
   default     = {}
@@ -41,6 +36,7 @@ variable api_gateway_default {
     endpoint_configuration              = null
     minimum_compression_size            = null
     policy                              = null
+    hosted_zone_id                      = null
     custom_domain                       = null
     acm_cert_arn                        = null
     base_path_mapping_active_stage_name = null
@@ -137,6 +133,13 @@ variable api_gateway {
     condition     = contains(["HEADER", "AUTHORIZER"], tostring(lookup(var.api_gateway, "api_key_source", "HEADER")))
     error_message = "Optional attribute 'api_key_source' of 'api_gateway' must be one of:\n\t- HEADER\n\t- AUTHORIZER\n if specified."
   }
+
+  // hosted_zone_id
+  validation {
+    condition     = can(tostring(lookup(var.api_gateway, "hosted_zone_id", "")))
+    error_message = "Optional attribute 'hosted_zone_id' of 'api_gateway' must be a string if specified."
+  }
+
 
   // custom_domain
   validation {
