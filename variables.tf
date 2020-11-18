@@ -44,7 +44,7 @@ variable api_gateway_default {
     custom_domain                       = null
     acm_cert_arn                        = null
     base_path_mapping_stage_name        = null
-    default_deployment_name             = null
+    default_deployment_name             = "default"
     default_deployment_description      = null
     client_cert_enabled                 = false
     client_cert_description = "Managed by the P&G AWS API Gateway Terraform Module https://github.com/procter-gamble/terraform-module-aws-api-gateway.git"
@@ -108,7 +108,7 @@ variable api_gateway {
 
   // client_cert_enabled
   validation {
-    condition     = can(tobool(lookup(var.api_gateway, "client_cert_enabled", false))
+    condition     = can(tobool(lookup(var.api_gateway, "client_cert_enabled", false)))
     error_message = "Optional attribute 'client_cert_enabled' of 'api_gateway' must be a boolean if specified."
   }
 

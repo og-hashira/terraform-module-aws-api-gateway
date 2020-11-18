@@ -134,7 +134,7 @@ resource aws_api_gateway_base_path_mapping test {
   count      = local.api_gateway.custom_domain != null && local.api_gateway.acm_cert_arn != null ? 1 : 0
 
   api_id = aws_api_gateway_rest_api.default.*.id[0]
-  stage_name  = lookup(aws_api_gateway_stage.default[*]["stage_name"], local.api_gateway.base_path_mapping_stage_name)
+  stage_name  = local.api_gateway.base_path_mapping_stage_name
   domain_name = local.api_gateway.custom_domain
 
   depends_on = [aws_api_gateway_deployment.default]
@@ -158,7 +158,7 @@ resource aws_route53_record api_dns {
 # Resource    : Api Gateway Deployment
 # Description : Terraform resource to create Api Gateway Deployment on AWS.
 resource aws_api_gateway_deployment default {
-  count = local.api_gateway_deployment != null ? length(local.api_gateway_deployment) : 0
+  count = local.api_gateway.default_deployment_name != null ? 1 : 0
 
   rest_api_id       = aws_api_gateway_rest_api.default.*.id[0]
   stage_name        = local.api_gateway.default_deployment_name
@@ -166,13 +166,12 @@ resource aws_api_gateway_deployment default {
   # variables         = local.api_gateway_deployment.variables
 
   depends_on = [aws_api_gateway_method.default, aws_api_gateway_integration.default]
-
 }
 
 # Resource    : Api Gateway Stage
 # Description : Terraform resource to create Api Gateway Stage on AWS
 resource aws_api_gateway_stage default {
-  count = local.api_gateway_deployment != null ? length(local.api_gateway_stages) : 0
+  count = length(local.api_gateway_stages) 
 
   rest_api_id           = aws_api_gateway_rest_api.default.*.id[0]
   deployment_id         = aws_api_gateway_deployment.default.*.id[0]
