@@ -4,6 +4,11 @@ variable "enabled" {
   description = "Whether to create rest api."
 }
 
+variable "hosted_zone_id" {
+  type        = string
+  description = "The hosted zone ID to create the DNS record for the API"
+}
+
 variable tags {
   type        = map(string)
   default     = {}
@@ -38,7 +43,10 @@ variable api_gateway_default {
     policy                              = null
     custom_domain                       = null
     acm_cert_arn                        = null
-    client_cert_enabled     = false
+    base_path_mapping_stage_name        = null
+    default_deployment_name             = null
+    default_deployment_description      = null
+    client_cert_enabled                 = false
     client_cert_description = "Managed by the P&G AWS API Gateway Terraform Module https://github.com/procter-gamble/terraform-module-aws-api-gateway.git"
   }
 }
@@ -78,6 +86,36 @@ variable api_gateway {
   validation {
     condition     = can(tostring(lookup(var.api_gateway, "description", "")))
     error_message = "Optional attribute 'description' of 'api_gateway' must be a string if specified."
+  }
+
+  // base_path_mapping_stage_name
+  validation {
+    condition     = can(tostring(lookup(var.api_gateway, "base_path_mapping_stage_name", "")))
+    error_message = "Optional attribute 'base_path_mapping_stage_name' of 'api_gateway' must be a string if specified."
+  }
+
+  // default_deployment_name
+  validation {
+    condition     = can(tostring(lookup(var.api_gateway, "default_deployment_name", "")))
+    error_message = "Optional attribute 'default_deployment_name' of 'api_gateway' must be a string if specified."
+  }
+
+  // default_deployment_description
+  validation {
+    condition     = can(tostring(lookup(var.api_gateway, "default_deployment_description", "")))
+    error_message = "Optional attribute 'default_deployment_description' of 'api_gateway' must be a string if specified."
+  }
+
+  // client_cert_enabled
+  validation {
+    condition     = can(tobool(lookup(var.api_gateway, "client_cert_enabled", "")))
+    error_message = "Optional attribute 'client_cert_enabled' of 'api_gateway' must be a boolean if specified."
+  }
+
+  // client_cert_description
+  validation {
+    condition     = can(tostring(lookup(var.api_gateway, "client_cert_description", "")))
+    error_message = "Optional attribute 'client_cert_description' of 'api_gateway' must be a string if specified."
   }
 
   // binary_media_types
@@ -191,7 +229,7 @@ variable api_gateway_stage_default {
   type        = any
   default = {
     stage_name            = null
-    access_log_settings   = null
+    access_log_settings   = []
     cache_cluster_enabled = false
     cache_cluster_size    = null
     client_certificate_id = null

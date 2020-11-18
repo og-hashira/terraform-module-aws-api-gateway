@@ -4,6 +4,7 @@ terraform {
     aws = "~> 3.0"
   }
 }
+
 provider "aws" {}
 
 locals {
@@ -133,11 +134,25 @@ resource aws_api_gateway_base_path_mapping test {
   count      = local.api_gateway.custom_domain != null && local.api_gateway.acm_cert_arn != null ? 1 : 0
 
   api_id = aws_api_gateway_rest_api.default.*.id[0]
-  // TODO:  Which stage?
-  // stage_name  = var.stage_name
+  stage_name  = lookup(aws_api_gateway_stage.default[*]["stage_name"], local.api_gateway.base_path_mapping_stage_name)
   domain_name = local.api_gateway.custom_domain
 
   depends_on = [aws_api_gateway_deployment.default]
+}
+
+# Resource    : DNS record using Route53.
+# Description : Route53 is not specifically required; any DNS host can be used.
+resource aws_route53_record api_dns {
+  count   = local.api_gateway.custom_domain != null ? 1 : 0
+  name    = aws_api_gateway_domain_name.api_domain.*.domain_name[0]
+  type    = "A"
+  zone_id = var.hosted_zone_id
+
+  alias {
+    evaluate_target_health = true
+    name                   = aws_api_gateway_domain_name.api_domain.*.cloudfront_domain_name[0]
+    zone_id                = aws_api_gateway_domain_name.api_domain.*.cloudfront_zone_id[0]
+  }
 }
 
 # Resource    : Api Gateway Deployment
@@ -145,13 +160,13 @@ resource aws_api_gateway_base_path_mapping test {
 resource aws_api_gateway_deployment default {
   count = local.api_gateway_deployment != null ? length(local.api_gateway_deployment) : 0
 
-  // depends_on = [aws_api_gateway_method.default, aws_api_gateway_integration.default]
-
   rest_api_id       = aws_api_gateway_rest_api.default.*.id[0]
-  stage_name        = local.api_gateway_deployment.stage_name
-  description       = local.api_gateway_deployment.description
-  stage_description = local.api_gateway_deployment.stage_description
-  variables         = local.api_gateway_deployment.variables
+  stage_name        = local.api_gateway.default_deployment_name
+  description       = local.api_gateway.default_deployment_description
+  # variables         = local.api_gateway_deployment.variables
+
+  depends_on = [aws_api_gateway_method.default, aws_api_gateway_integration.default]
+
 }
 
 # Resource    : Api Gateway Stage
@@ -171,7 +186,7 @@ resource aws_api_gateway_stage default {
   xray_tracing_enabled  = element(local.api_gateway_stages, count.index).xray_tracing_enabled
 
   dynamic "access_log_settings" {
-    for_each = can(lookup(element(local.api_gateway_stages, count.index), "access_log_settings")) ? lookup(element(local.api_gateway_stages, count.index), "access_log_settings") : []
+    for_each = lookup(element(local.api_gateway_stages, count.index), "access_log_settings")
     content {
       destination_arn = access_log_settings.value["destination_arn"]
       format          = access_log_settings.value["format"]
