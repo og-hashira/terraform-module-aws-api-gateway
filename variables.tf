@@ -108,7 +108,7 @@ variable api_gateway {
 
   // client_cert_enabled
   validation {
-    condition     = can(tobool(lookup(var.api_gateway, "client_cert_enabled", "")))
+    condition     = can(tobool(lookup(var.api_gateway, "client_cert_enabled", false))
     error_message = "Optional attribute 'client_cert_enabled' of 'api_gateway' must be a boolean if specified."
   }
 
