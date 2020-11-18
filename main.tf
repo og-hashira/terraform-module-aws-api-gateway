@@ -134,7 +134,7 @@ resource aws_api_gateway_base_path_mapping test {
   count      = local.api_gateway.custom_domain != null && local.api_gateway.acm_cert_arn != null ? 1 : 0
 
   api_id = aws_api_gateway_rest_api.default.*.id[0]
-  stage_name  = local.api_gateway.base_path_mapping_stage_name
+  stage_name  = local.api_gateway.base_path_mapping_active_stage_name
   domain_name = local.api_gateway.custom_domain
 
   depends_on = [aws_api_gateway_deployment.default]

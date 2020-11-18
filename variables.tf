@@ -43,7 +43,7 @@ variable api_gateway_default {
     policy                              = null
     custom_domain                       = null
     acm_cert_arn                        = null
-    base_path_mapping_stage_name        = null
+    base_path_mapping_active_stage_name = null
     default_deployment_name             = "default"
     default_deployment_description      = null
     client_cert_enabled                 = false
@@ -88,10 +88,10 @@ variable api_gateway {
     error_message = "Optional attribute 'description' of 'api_gateway' must be a string if specified."
   }
 
-  // base_path_mapping_stage_name
+  // base_path_mapping_active_stage_name
   validation {
-    condition     = can(tostring(lookup(var.api_gateway, "base_path_mapping_stage_name", "")))
-    error_message = "Optional attribute 'base_path_mapping_stage_name' of 'api_gateway' must be a string if specified."
+    condition     = can(tostring(lookup(var.api_gateway, "base_path_mapping_active_stage_name", "")))
+    error_message = "Optional attribute 'base_path_mapping_active_stage_name' of 'api_gateway' must be a string if specified."
   }
 
   // default_deployment_name
