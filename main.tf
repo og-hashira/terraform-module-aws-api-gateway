@@ -122,8 +122,6 @@ resource aws_api_gateway_client_certificate default {
 # Resource    : Api Gateway Custom Domain Name
 # Description : Terraform resource to create Api Gateway Custom Domain on AWS.
 resource aws_api_gateway_domain_name api_domain {
-  count = local.api_gateway.custom_domain != null && local.api_gateway.acm_cert_arn != null ? 1 : 0
-
   certificate_arn = local.api_gateway.acm_cert_arn
   domain_name     = local.api_gateway.custom_domain
 }
@@ -131,13 +129,11 @@ resource aws_api_gateway_domain_name api_domain {
 # Resource    : Api Gateway Base Path Mapping
 # Description : Terraform resource to create Api Gateway base path mapping on AWS.
 resource aws_api_gateway_base_path_mapping test {
-  count      = local.api_gateway.custom_domain != null && local.api_gateway.acm_cert_arn != null ? 1 : 0
-
   api_id = aws_api_gateway_rest_api.default.*.id[0]
   stage_name  = local.api_gateway.base_path_mapping_active_stage_name
   domain_name = local.api_gateway.custom_domain
 
-  depends_on = [aws_api_gateway_deployment.default]
+  depends_on = [aws_api_gateway_deployment.default, aws_api_gateway_stage.default]
 }
 
 # Resource    : DNS record using Route53.
