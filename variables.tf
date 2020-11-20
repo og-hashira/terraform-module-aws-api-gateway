@@ -628,10 +628,10 @@ variable method_response_default {
 
     response_template = null
     response_parameters = {
-      "method.response.header.Access-Control-Allow-Credentials" = true
-      "method.response.header.Access-Control-Allow-Origin"      = true
-      "method.response.header.Access-Control-Allow-Headers"     = true
-      "method.response.header.Access-Control-Allow-Methods"     = true
+      "method.response.header.Access-Control-Allow-Credentials" = "'true'"
+      "method.response.header.Access-Control-Allow-Origin"      = "'*'"
+      "method.response.header.Access-Control-Allow-Headers"     = "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Amz-User-Agent'"
+      "method.response.header.Access-Control-Allow-Methods"     = "'OPTIONS,GET,POST'"
     }
   }
 }
