@@ -43,7 +43,7 @@ variable api_gateway_default {
     default_deployment_name             = "default"
     default_deployment_description      = null
     client_cert_enabled                 = false
-    client_cert_description = "Managed by the P&G AWS API Gateway Terraform Module https://github.com/procter-gamble/terraform-module-aws-api-gateway.git"
+    client_cert_description             = "Managed by the P&G AWS API Gateway Terraform Module https://github.com/procter-gamble/terraform-module-aws-api-gateway.git"
   }
 }
 
@@ -533,13 +533,13 @@ variable authorizer_definitions {
 
   // provider_arns
   validation {
-    condition = (var.authorizer_definitions != [] ? 
-                  ! can(index(
-                        [for auth in var.authorizer_definitions : 
-                          can(auth.provider_arns) ? 
-                            can(toset(auth.provider_arns)): true]
-                        , false))  : # if authorizer_definitions are provided validate provider_arns
-                true) # authorizer_definitions is optional, so return true
+    condition = (var.authorizer_definitions != [] ?
+      ! can(index(
+        [for auth in var.authorizer_definitions :
+          can(auth.provider_arns) ?
+        can(toset(auth.provider_arns)) : true]
+      , false)) : # if authorizer_definitions are provided validate provider_arns
+    true)         # authorizer_definitions is optional, so return true
     # condition     = (var.authorizer_definitions != [] ? 
     #                   ! can(index(
     #                         [for auth in var.authorizer_definitions : 
@@ -578,13 +578,20 @@ variable api_gateway_method_default {
       connection_id           = null
       uri                     = null
       credentials             = null
-      request_templates       = null
-      request_parameters      = null
-      passthrough_behavior    = null
-      cache_key_parameters    = null
-      cache_namespace         = null
-      content_handling        = null
-      timeout_milliseconds    = 29000
+      request_templates = {
+        "application/json" = "{ \"statusCode\": 200 }"
+      }
+      request_parameters = {
+        "method.response.header.Access-Control-Allow-Credentials" = "'true'"
+        "method.response.header.Access-Control-Allow-Origin"      = "'*'"
+        "method.response.header.Access-Control-Allow-Headers"     = "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Amz-User-Agent'"
+        "method.response.header.Access-Control-Allow-Methods"     = "'OPTIONS,GET,POST'"
+      }
+      content_handling     = null # Null == Passthrough
+      passthrough_behavior = null
+      cache_key_parameters = null
+      cache_namespace      = null
+      timeout_milliseconds = 29000
 
       integration_responses = []
     }
@@ -596,23 +603,36 @@ variable api_gateway_method_default {
 variable integration_response_default {
   type = any
   default = {
-    http_method         = "POST"
-    status_code         = "200"
-    selection_pattern   = null
-    response_templates  = null
-    response_parameters = null
-    content_handling    = null
+    http_method        = "POST"
+    status_code        = "200"
+    selection_pattern  = null
+    response_templates = null
+    response_parameters = {
+      "method.response.header.Access-Control-Allow-Credentials" = "'true'"
+      "method.response.header.Access-Control-Allow-Origin"      = "'*'"
+      "method.response.header.Access-Control-Allow-Headers"     = "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Amz-User-Agent'"
+      "method.response.header.Access-Control-Allow-Methods"     = "'OPTIONS,GET,POST'"
+    }
+    content_handling = null # Null == Passthrough
   }
 }
 
 variable method_response_default {
   type = any
   default = {
-    status_code         = "200"
-    response_type       = null
-    response_models     = null
-    response_template   = null
-    response_parameters = null
+    status_code   = "200"
+    response_type = null
+    response_models = {
+      "application/json" = "Empty"
+    }
+
+    response_template = null
+    response_parameters = {
+      "method.response.header.Access-Control-Allow-Credentials" = true
+      "method.response.header.Access-Control-Allow-Origin"      = true
+      "method.response.header.Access-Control-Allow-Headers"     = true
+      "method.response.header.Access-Control-Allow-Methods"     = true
+    }
   }
 }
 
@@ -687,7 +707,7 @@ variable api_gateway_methods {
         # build an array of true/false values describing if the validation is passed for each record...  if 'false' found via the index function, return false
         [for method in var.api_gateway_methods : can(lookup(method, "http_method")) ?
           contains(["GET", "POST", "PUT", "DELETE", "HEAD", "OPTIONS", "ANY"], lookup(method, "http_method")) : # if can find http_method true
-        true]                                                                                                  # Optional so result should be false - http_method not found
+        true]                                                                                                   # Optional so result should be false - http_method not found
       , false))                                                                                                 # index function lookup value
     : true)                                                                                                     # if var.api_gateway_methods == [] it wasn't passed at all.  Since this is optional, pass validation
     error_message = "Required attribute 'http_method' of 'api_gateway_methods' must be a string equal to GET, POST, PUT, DELETE, HEAD, OPTIONS, ANY."
@@ -749,7 +769,7 @@ variable api_gateway_methods {
         [for method in var.api_gateway_methods : can(method.integration) ?
           can(method.integration.http_method) ?
           contains(["GET", "POST", "PUT", "DELETE", "HEAD", "OPTION", "ANY"], method.integration.http_method) : # if http_method found... validate it
-          true :                                                                                               # optional - If integration specified, http_method must be provided so return false
+          true :                                                                                                # optional - If integration specified, http_method must be provided so return false
         true]                                                                                                   # integration is not required, so return true
       , false))                                                                                                 # index function lookup value
     : true)                                                                                                     # if var.api_gateway_methods == [] it wasn't passed at all.  Since this is optional, pass validation

@@ -2,15 +2,15 @@
 
 # api_gateway = {
 #   name = "api-gateway"
-  # description                         = "The test api-gateway"
-  # binary_media_types                  = ["UTF-8-encoded"]
-  # minimum_compression_size            = -1
-  # api_key_source                      = "HEADER"
-  # type                                = ["EDGE"]
-  # custom_domain = "api.bitlocker.np.pgcloud.com"
-  # acm_cert_arn   = ""
-  # api_gateway_client_cert_enabled     = false
-  # api_gateway_client_cert_description = ""
+# description                         = "The test api-gateway"
+# binary_media_types                  = ["UTF-8-encoded"]
+# minimum_compression_size            = -1
+# api_key_source                      = "HEADER"
+# type                                = ["EDGE"]
+# custom_domain = "api.bitlocker.np.pgcloud.com"
+# acm_cert_arn   = ""
+# api_gateway_client_cert_enabled     = false
+# api_gateway_client_cert_description = ""
 # }
 
 # api_gateway_deployment = {

@@ -40,14 +40,14 @@ locals {
       method,
       { for key, value in var.api_gateway_method_default :
         key => merge(var.api_gateway_method_default.integration,
-                      method.integration,
-                      can(method.integration.integration_responses) ? 
-                        { integration_responses = [for response in method.integration.integration_responses : merge(var.integration_response_default, response)] } :
-                        {}
-                    ) if key == "integration" },
-      can(method.method_responses) ? 
-        { method_responses = [for response in method.method_responses : merge(var.method_response_default, response)] } :
-        {}
+          method.integration,
+          can(method.integration.integration_responses) ?
+          { integration_responses = [for response in method.integration.integration_responses : merge(var.integration_response_default, response)] } :
+          {}
+      ) if key == "integration" },
+      can(method.method_responses) ?
+      { method_responses = [for response in method.method_responses : merge(var.method_response_default, response)] } :
+      {}
     )
   ]
 
@@ -122,14 +122,18 @@ resource aws_api_gateway_client_certificate default {
 # Resource    : Api Gateway Custom Domain Name
 # Description : Terraform resource to create Api Gateway Custom Domain on AWS.
 resource aws_api_gateway_domain_name api_domain {
+  count = local.api_gateway.custom_domain != null ? 1 : 0
+
   certificate_arn = local.api_gateway.acm_cert_arn
   domain_name     = local.api_gateway.custom_domain
 }
 
 # Resource    : Api Gateway Base Path Mapping
 # Description : Terraform resource to create Api Gateway base path mapping on AWS.
-resource aws_api_gateway_base_path_mapping test {
-  api_id = aws_api_gateway_rest_api.default.*.id[0]
+resource aws_api_gateway_base_path_mapping mapping {
+  count = local.api_gateway.custom_domain != null ? 1 : 0
+
+  api_id      = aws_api_gateway_rest_api.default.*.id[0]
   stage_name  = local.api_gateway.base_path_mapping_active_stage_name
   domain_name = local.api_gateway.custom_domain
 
@@ -156,9 +160,9 @@ resource aws_route53_record api_dns {
 resource aws_api_gateway_deployment default {
   count = local.api_gateway.default_deployment_name != null ? 1 : 0
 
-  rest_api_id       = aws_api_gateway_rest_api.default.*.id[0]
-  stage_name        = local.api_gateway.default_deployment_name
-  description       = local.api_gateway.default_deployment_description
+  rest_api_id = aws_api_gateway_rest_api.default.*.id[0]
+  stage_name  = local.api_gateway.default_deployment_name
+  description = local.api_gateway.default_deployment_description
   # variables         = local.api_gateway_deployment.variables
 
   depends_on = [aws_api_gateway_method.default, aws_api_gateway_integration.default]
@@ -167,7 +171,7 @@ resource aws_api_gateway_deployment default {
 # Resource    : Api Gateway Stage
 # Description : Terraform resource to create Api Gateway Stage on AWS
 resource aws_api_gateway_stage default {
-  count = length(local.api_gateway_stages) 
+  count = length(local.api_gateway_stages)
 
   rest_api_id           = aws_api_gateway_rest_api.default.*.id[0]
   deployment_id         = aws_api_gateway_deployment.default.*.id[0]
@@ -320,7 +324,7 @@ resource aws_api_gateway_method_response options_200 {
   http_method = aws_api_gateway_method.options_method.*.http_method[count.index]
   status_code = "200"
 
-  response_models = { "application/json" = "Empty" }
+  # response_models = { "application/json" = "Empty" }
 
   response_parameters = {
     "method.response.header.Access-Control-Allow-Origin"      = true
@@ -356,7 +360,7 @@ resource aws_api_gateway_integration default {
   integration_http_method = element(local.api_gateway_methods, count.index).integration.integration_http_method
   type                    = element(local.api_gateway_methods, count.index).integration.type
   connection_type         = element(local.api_gateway_methods, count.index).integration.connection_type
-  connection_id           = element(local.api_gateway_methods, count.index).integration.connection_id 
+  connection_id           = element(local.api_gateway_methods, count.index).integration.connection_id
   uri                     = element(local.api_gateway_methods, count.index).integration.uri
   credentials             = element(local.api_gateway_methods, count.index).integration.credentials
   request_parameters      = element(local.api_gateway_methods, count.index).integration.request_parameters
@@ -379,11 +383,9 @@ resource aws_api_gateway_integration_response default {
   http_method = aws_api_gateway_method.default.*.http_method[count.index]
   status_code = aws_api_gateway_method_response.default.*.status_code[count.index]
 
-  # TODO:  Figure this out!
-  # request_parameters      = element(local.api_gateway_methods, count.index).integration.request_parameters
-  # request_templates       = element(local.api_gateway_methods, count.index).integration.request_templates
-  # content_handling        = element(local.api_gateway_methods, count.index).integration.content_handling
-
+  request_parameters = element(local.api_gateway_methods, count.index).integration.request_parameters
+  request_templates  = element(local.api_gateway_methods, count.index).integration.request_templates
+  content_handling   = element(local.api_gateway_methods, count.index).integration.content_handling
 }
 
 resource aws_api_gateway_integration options_integration {
@@ -399,17 +401,14 @@ resource aws_api_gateway_integration options_integration {
 }
 
 resource aws_api_gateway_integration_response options_integration_response {
-  count       = length(aws_api_gateway_integration.options_integration.*.id)
-  rest_api_id = aws_api_gateway_rest_api.default.*.id[0]
-  resource_id = lookup(local.resource_method_map, element(local.api_gateway_methods, count.index).resource_path)
-  http_method = aws_api_gateway_method.options_method.*.http_method[count.index]
-  status_code = aws_api_gateway_method_response.options_200.*.status_code[count.index]
-
-  response_parameters = {
-    "method.response.header.Access-Control-Allow-Origin"  = "'*'"
-    "method.response.header.Access-Control-Allow-Headers" = "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Amz-User-Agent'"
-    "method.response.header.Access-Control-Allow-Methods" = "'OPTIONS,DELETE,GET,HEAD,PATCH,POST,PUT'"
-  }
+  count              = length(aws_api_gateway_integration.options_integration.*.id)
+  rest_api_id        = aws_api_gateway_rest_api.default.*.id[0]
+  resource_id        = lookup(local.resource_method_map, element(local.api_gateway_methods, count.index).resource_path)
+  http_method        = aws_api_gateway_method.options_method.*.http_method[count.index]
+  status_code        = aws_api_gateway_method_response.options_200.*.status_code[count.index]
+  request_parameters = element(local.api_gateway_methods, count.index).integration.request_parameters
+  request_templates  = element(local.api_gateway_methods, count.index).integration.request_templates
+  content_handling   = element(local.api_gateway_methods, count.index).integration.content_handling
 
   depends_on = [
     aws_api_gateway_method_response.options_200,
