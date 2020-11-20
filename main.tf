@@ -384,7 +384,7 @@ resource aws_api_gateway_integration_response default {
   status_code = aws_api_gateway_method_response.default.*.status_code[count.index]
 
   response_parameters = element(element(local.api_gateway_methods, count.index).method_responses, 0).response_parameters
-  response_templates  = element(element(local.api_gateway_methods, count.index).method_responses, 0).response_templates
+  response_templates  = element(element(local.api_gateway_methods, count.index).method_responses, 0).response_template
 }
 
 resource aws_api_gateway_integration options_integration {
@@ -407,7 +407,7 @@ resource aws_api_gateway_integration_response options_integration_response {
   status_code        = aws_api_gateway_method_response.options_200.*.status_code[count.index]
   
   response_parameters = element(element(local.api_gateway_methods, count.index).method_responses, 0).response_parameters
-  response_templates  = element(element(local.api_gateway_methods, count.index).method_responses, 0).response_templates
+  response_templates  = element(element(local.api_gateway_methods, count.index).method_responses, 0).response_template
 
   depends_on = [
     aws_api_gateway_method_response.options_200,
