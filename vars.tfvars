@@ -1,17 +1,18 @@
 # tags = { "bu" = "xyz" }
 
-# api_gateway = {
-#   name = "api-gateway"
-# description                         = "The test api-gateway"
-# binary_media_types                  = ["UTF-8-encoded"]
-# minimum_compression_size            = -1
-# api_key_source                      = "HEADER"
-# type                                = ["EDGE"]
-# custom_domain = "api.bitlocker.np.pgcloud.com"
-# acm_cert_arn   = ""
-# api_gateway_client_cert_enabled     = false
-# api_gateway_client_cert_description = ""
-# }
+
+api_gateway = {
+  name        = "api-gateway"
+  description = "The test api-gateway"
+  # binary_media_types                  = ["UTF-8-encoded"]
+  # minimum_compression_size            = -1
+  api_key_source = "HEADER"
+  type           = ["EDGE"]
+  # custom_domain = "api.bitlocker.np.pgcloud.com"
+  # acm_cert_arn   = ""
+  # api_gateway_client_cert_enabled     = false
+  # api_gateway_client_cert_description = ""
+}
 
 # api_gateway_deployment = {
 #   stage_name        = "afasdf"
@@ -84,26 +85,31 @@
 #   }
 # ]
 
-# authorizer_definitions = [
-#   {
-#     authorizer_name = "pingFedAuth"
-#     authorizer_uri  = "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:459235286243:function:my-authorizor-lambda/invocations"
-#     # provider_arns = []
-#   }
-# ]
+authorizer_definitions = [
+  {
+    authorizer_name = "pingFedAuth"
+    authorizer_uri  = "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:459235286243:function:my-authorizor-lambda/invocations"
+    # provider_arns = []
+  }
+]
 
-# api_gateway_methods = [
-#   {
-#     resource_path   = "blah"
-#     http_method     = "POST"
-#     # authorization   = "CUSTOM"
-#     authorizer_name = "pingFedAuth"
-
-#     integration = {
-#       # integration_responses = [{ http_method = "GET" }, { http_method = "DELETE" }]
-#       http_method = "POST"
-#       uri         = "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:459235286243:function:my-awesome-lambda/invocations"
-#     }
-#     # method_responses = [{ status_code = "300" }, { response_type = "50" }]
-#   }
-# ]
+api_gateway_methods = [
+  {
+    resource_path = "blah"
+    api_method = {
+      http_method     = "GET"
+      authorizer_name = "pingFedAuth"
+      integration = {
+        uri = "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:459235286243:function:my-awesome-lambda/invocations"
+      }
+    },
+    # resource_path = "blah2"
+    # api_method = {
+    #   http_method     = "POST"
+    #   authorizer_name = "pingFedAuth"
+    #   integration = {
+    #     uri         = "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:459235286243:function:my-awesome-lambda/invocations"
+    #   }
+    # }
+  }
+]

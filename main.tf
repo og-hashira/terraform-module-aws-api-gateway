@@ -36,20 +36,22 @@ locals {
 
   // api_gateway_methods
   api_gateway_methods = [for method in var.api_gateway_methods :
-    merge(var.api_gateway_method_default,
-      method,
-      { for key, value in var.api_gateway_method_default :
-        key => merge(var.api_gateway_method_default.integration,
-          method.integration,
-          can(method.integration.integration_responses) ?
-          { integration_responses = [for response in method.integration.integration_responses : merge(var.integration_response_default, response)] } :
-          {}
-      ) if key == "integration" },
-      can(method.method_responses) ?
-      { method_responses = [for response in method.method_responses : merge(var.method_response_default, response)] } :
-      {}
-    )
-  ]
+    merge(method,
+      { api_method = merge(
+        var.api_gateway_method_default,
+        try(method.api_method, {}),
+        try({ integration = merge(var.method_integration_default, method.api_method.integration) }, { integration = var.method_integration_default }),
+        try({ integration_response = merge(var.method_integration_response_default, method.api_method.integration_response) }, { integration_response = var.method_integration_response_default }),
+        try({ response = merge(var.method_response_default, method.api_method.response) }, { response = var.method_response_default }),
+      ) },
+      { options_method = merge(
+        var.api_gateway_options_default,
+        try(method.options_method, {}),
+        try({ integration = merge(var.options_integration_default, method.options_method.integration) }, { integration = var.options_integration_default }),
+        try({ integration_response = merge(var.options_integration_response_default, method.options_method.integration_response) }, { integration_response = var.options_integration_response_default }),
+        try({ response = merge(var.options_response_default, method.options_method.response) }, { response = var.options_response_default }),
+      ) },
+  )]
 
   ###########################
   ## Resource path parsing ##
@@ -290,6 +292,10 @@ resource aws_api_gateway_resource fifth_paths {
   path_part   = each.value.segment
 }
 
+########################
+## API Gateway Method ##
+########################
+
 # Resource    : Api Gateway Method
 # Description : Terraform resource to create Api Gateway Method on AWS.
 resource aws_api_gateway_method default {
@@ -297,43 +303,14 @@ resource aws_api_gateway_method default {
 
   rest_api_id          = aws_api_gateway_rest_api.default.*.id[0]
   resource_id          = lookup(local.resource_method_map, element(local.api_gateway_methods, count.index).resource_path)
-  http_method          = element(local.api_gateway_methods, count.index).http_method
-  authorization        = element(local.api_gateway_methods, count.index).authorization
-  authorizer_id        = element(local.api_gateway_methods, count.index).authorizer_id != null ? element(local.api_gateway_methods, count.index).authorizer_id : element(local.api_gateway_methods, count.index).authorizer_name != null ? lookup(local.authorizers, element(local.api_gateway_methods, count.index).authorizer_name, null) : null
-  authorization_scopes = element(local.api_gateway_methods, count.index).authorization_scopes
-  api_key_required     = element(local.api_gateway_methods, count.index).api_key_required
-  request_models       = element(local.api_gateway_methods, count.index).request_models
-  request_validator_id = element(local.api_gateway_methods, count.index).request_validator_id
-  request_parameters   = element(local.api_gateway_methods, count.index).request_parameters
-}
-
-resource aws_api_gateway_method options_method {
-  count = length(local.api_gateway_methods)
-
-  rest_api_id   = aws_api_gateway_rest_api.default.*.id[0]
-  resource_id   = lookup(local.resource_method_map, element(local.api_gateway_methods, count.index).resource_path)
-  http_method   = "OPTIONS"
-  authorization = "NONE"
-}
-
-resource aws_api_gateway_method_response options_200 {
-  count = length(local.api_gateway_methods)
-
-  rest_api_id = aws_api_gateway_rest_api.default.*.id[0]
-  resource_id = lookup(local.resource_method_map, element(local.api_gateway_methods, count.index).resource_path)
-  http_method = aws_api_gateway_method.options_method.*.http_method[count.index]
-  status_code = "200"
-
-  # response_models = { "application/json" = "Empty" }
-
-  response_parameters = {
-    "method.response.header.Access-Control-Allow-Origin"      = true
-    "method.response.header.Access-Control-Allow-Headers"     = true
-    "method.response.header.Access-Control-Allow-Methods"     = true
-    "method.response.header.Access-Control-Allow-Credentials" = true
-  }
-
-  depends_on = [aws_api_gateway_method.options_method]
+  http_method          = element(local.api_gateway_methods, count.index).api_method.http_method
+  authorization        = element(local.api_gateway_methods, count.index).api_method.authorization
+  authorizer_id        = element(local.api_gateway_methods, count.index).api_method.authorizer_id != null ? element(local.api_gateway_methods, count.index).api_method.authorizer_id : element(local.api_gateway_methods, count.index).api_method.authorizer_name != null ? lookup(local.authorizers, element(local.api_gateway_methods, count.index).api_method.authorizer_name, null) : null
+  authorization_scopes = element(local.api_gateway_methods, count.index).api_method.authorization_scopes
+  api_key_required     = element(local.api_gateway_methods, count.index).api_method.api_key_required
+  request_models       = element(local.api_gateway_methods, count.index).api_method.request_models
+  request_validator_id = element(local.api_gateway_methods, count.index).api_method.request_validator_id
+  request_parameters   = element(local.api_gateway_methods, count.index).api_method.request_parameters
 }
 
 # Resource    : Api Gateway Method Response
@@ -343,10 +320,12 @@ resource aws_api_gateway_method_response default {
 
   rest_api_id         = aws_api_gateway_rest_api.default.*.id[0]
   resource_id         = lookup(local.resource_method_map, element(local.api_gateway_methods, count.index).resource_path)
-  http_method         = aws_api_gateway_method.default.*.http_method[count.index]
-  status_code         = can(element(var.api_gateway_methods, count.index).method_responses) && can(element(can(element(var.api_gateway_methods, count.index).method_responses, 0))) ? element(element(var.api_gateway_methods, count.index).method_responses, 0).status_code : 200
-  response_models     = can(element(var.api_gateway_methods, count.index).method_responses) && can(element(can(element(var.api_gateway_methods, count.index).method_responses, 0))) ? element(element(var.api_gateway_methods, count.index).method_responses, 0).response_models : null
-  response_parameters = can(element(var.api_gateway_methods, count.index).method_responses) && can(element(can(element(var.api_gateway_methods, count.index).method_responses, 0))) ? element(element(var.api_gateway_methods, count.index).method_responses, 0).response_parameters : null
+  http_method         = element(local.api_gateway_methods, count.index).api_method.http_method
+  status_code         = element(local.api_gateway_methods, count.index).api_method.response.status_code
+  response_models     = element(local.api_gateway_methods, count.index).api_method.response.response_models
+  response_parameters = element(local.api_gateway_methods, count.index).api_method.response.response_parameters
+
+  depends_on = [aws_api_gateway_method.default]
 }
 
 # Resource    : Api Gateway Integration
@@ -356,20 +335,20 @@ resource aws_api_gateway_integration default {
 
   rest_api_id             = aws_api_gateway_rest_api.default.*.id[0]
   resource_id             = lookup(local.resource_method_map, element(local.api_gateway_methods, count.index).resource_path)
-  http_method             = aws_api_gateway_method.default.*.http_method[count.index]
-  integration_http_method = element(local.api_gateway_methods, count.index).integration.integration_http_method
-  type                    = element(local.api_gateway_methods, count.index).integration.type
-  connection_type         = element(local.api_gateway_methods, count.index).integration.connection_type
-  connection_id           = element(local.api_gateway_methods, count.index).integration.connection_id
-  uri                     = element(local.api_gateway_methods, count.index).integration.uri
-  credentials             = element(local.api_gateway_methods, count.index).integration.credentials
-  request_parameters      = element(local.api_gateway_methods, count.index).integration.request_parameters
-  request_templates       = element(local.api_gateway_methods, count.index).integration.request_templates
-  passthrough_behavior    = element(local.api_gateway_methods, count.index).integration.passthrough_behavior
-  cache_key_parameters    = element(local.api_gateway_methods, count.index).integration.cache_key_parameters
-  cache_namespace         = element(local.api_gateway_methods, count.index).integration.cache_namespace
-  content_handling        = element(local.api_gateway_methods, count.index).integration.content_handling
-  timeout_milliseconds    = element(local.api_gateway_methods, count.index).integration.timeout_milliseconds
+  http_method             = element(local.api_gateway_methods, count.index).api_method.http_method
+  integration_http_method = element(local.api_gateway_methods, count.index).api_method.integration.integration_http_method
+  type                    = element(local.api_gateway_methods, count.index).api_method.integration.type
+  connection_type         = element(local.api_gateway_methods, count.index).api_method.integration.connection_type
+  connection_id           = element(local.api_gateway_methods, count.index).api_method.integration.connection_id
+  uri                     = element(local.api_gateway_methods, count.index).api_method.integration.uri
+  credentials             = element(local.api_gateway_methods, count.index).api_method.integration.credentials
+  request_parameters      = element(local.api_gateway_methods, count.index).api_method.integration.request_parameters
+  request_templates       = element(local.api_gateway_methods, count.index).api_method.integration.request_templates
+  passthrough_behavior    = element(local.api_gateway_methods, count.index).api_method.integration.passthrough_behavior
+  cache_key_parameters    = element(local.api_gateway_methods, count.index).api_method.integration.cache_key_parameters
+  cache_namespace         = element(local.api_gateway_methods, count.index).api_method.integration.cache_namespace
+  content_handling        = element(local.api_gateway_methods, count.index).api_method.integration.content_handling
+  timeout_milliseconds    = element(local.api_gateway_methods, count.index).api_method.integration.timeout_milliseconds
 
   depends_on = [aws_api_gateway_method.default]
 }
@@ -377,37 +356,94 @@ resource aws_api_gateway_integration default {
 # Resource    : Api Gateway Integration Response
 # Description : Terraform resource to create Api Gateway Integration Response on AWS for creating api.
 resource aws_api_gateway_integration_response default {
-  count       = length(aws_api_gateway_integration.default.*.id)
-  rest_api_id = aws_api_gateway_rest_api.default.*.id[0]
-  resource_id = lookup(local.resource_method_map, element(local.api_gateway_methods, count.index).resource_path)
-  http_method = aws_api_gateway_method.default.*.http_method[count.index]
-  status_code = aws_api_gateway_method_response.default.*.status_code[count.index]
+  count               = length(local.api_gateway_methods)
+  rest_api_id         = aws_api_gateway_rest_api.default.*.id[0]
+  resource_id         = lookup(local.resource_method_map, element(local.api_gateway_methods, count.index).resource_path)
+  http_method         = element(local.api_gateway_methods, count.index).api_method.http_method
+  status_code         = element(local.api_gateway_methods, count.index).api_method.response.status_code
+  response_parameters = element(local.api_gateway_methods, count.index).api_method.integration_response.response_parameters
+  response_templates  = element(local.api_gateway_methods, count.index).api_method.integration_response.response_template
+  content_handling    = element(local.api_gateway_methods, count.index).api_method.integration_response.content_handling
+  selection_pattern   = element(local.api_gateway_methods, count.index).api_method.integration_response.selection_pattern
 
-  response_parameters = element(element(local.api_gateway_methods, count.index).method_responses, 0).response_parameters
-  response_templates  = element(element(local.api_gateway_methods, count.index).method_responses, 0).response_template
+  depends_on = [
+    aws_api_gateway_method_response.default,
+    aws_api_gateway_integration.default,
+  ]
 }
 
-resource aws_api_gateway_integration options_integration {
-  count       = length(aws_api_gateway_method.default.*.id)
-  rest_api_id = aws_api_gateway_rest_api.default.*.id[0]
-  resource_id = lookup(local.resource_method_map, element(local.api_gateway_methods, count.index).resource_path)
-  http_method = aws_api_gateway_method.options_method.*.http_method[count.index]
+####################
+## Options Method ##
+####################
 
-  type             = "MOCK"
-  content_handling = "CONVERT_TO_TEXT"
+# Resource    : Api Gateway Options Method
+# Description : Terraform resource to create Api Gateway Options Method on AWS.
+resource aws_api_gateway_method options_method {
+  count = length(local.api_gateway_methods)
+
+  rest_api_id          = aws_api_gateway_rest_api.default.*.id[0]
+  resource_id          = lookup(local.resource_method_map, element(local.api_gateway_methods, count.index).resource_path)
+  http_method          = element(local.api_gateway_methods, count.index).options_method.http_method
+  authorization        = element(local.api_gateway_methods, count.index).options_method.authorization
+  authorizer_id        = element(local.api_gateway_methods, count.index).options_method.authorizer_id != null ? element(local.api_gateway_methods, count.index).options_method.authorizer_id : element(local.api_gateway_methods, count.index).options_method.authorizer_name != null ? lookup(local.authorizers, element(local.api_gateway_methods, count.index).options_method.authorizer_name, null) : null
+  authorization_scopes = element(local.api_gateway_methods, count.index).options_method.authorization_scopes
+  api_key_required     = element(local.api_gateway_methods, count.index).options_method.api_key_required
+  request_models       = element(local.api_gateway_methods, count.index).options_method.request_models
+  request_validator_id = element(local.api_gateway_methods, count.index).options_method.request_validator_id
+  request_parameters   = element(local.api_gateway_methods, count.index).options_method.request_parameters
+}
+
+# Resource    : Api Gateway Method Options Response
+# Description : Terraform resource to create Api Gateway Method Options Response on AWS.
+resource aws_api_gateway_method_response options_200 {
+  count = length(local.api_gateway_methods)
+
+  rest_api_id         = aws_api_gateway_rest_api.default.*.id[0]
+  resource_id         = lookup(local.resource_method_map, element(local.api_gateway_methods, count.index).resource_path)
+  http_method         = element(local.api_gateway_methods, count.index).options_method.http_method
+  status_code         = element(local.api_gateway_methods, count.index).options_method.response.status_code
+  response_models     = element(local.api_gateway_methods, count.index).options_method.response.response_models
+  response_parameters = element(local.api_gateway_methods, count.index).options_method.response.response_parameters
 
   depends_on = [aws_api_gateway_method.options_method]
 }
 
+# Resource    : Api Gateway Options Integration
+# Description : Terraform resource to create Api Gateway Options Integration on AWS.
+resource aws_api_gateway_integration options_integration {
+  count                   = length(local.api_gateway_methods)
+  rest_api_id             = aws_api_gateway_rest_api.default.*.id[0]
+  resource_id             = lookup(local.resource_method_map, element(local.api_gateway_methods, count.index).resource_path)
+  http_method             = element(local.api_gateway_methods, count.index).options_method.http_method
+  integration_http_method = element(local.api_gateway_methods, count.index).options_method.integration.integration_http_method
+  type                    = element(local.api_gateway_methods, count.index).options_method.integration.type
+  connection_type         = element(local.api_gateway_methods, count.index).options_method.integration.connection_type
+  connection_id           = element(local.api_gateway_methods, count.index).options_method.integration.connection_id
+  uri                     = element(local.api_gateway_methods, count.index).options_method.integration.uri
+  credentials             = element(local.api_gateway_methods, count.index).options_method.integration.credentials
+  request_parameters      = element(local.api_gateway_methods, count.index).options_method.integration.request_parameters
+  request_templates       = element(local.api_gateway_methods, count.index).options_method.integration.request_templates
+  passthrough_behavior    = element(local.api_gateway_methods, count.index).options_method.integration.passthrough_behavior
+  cache_key_parameters    = element(local.api_gateway_methods, count.index).options_method.integration.cache_key_parameters
+  cache_namespace         = element(local.api_gateway_methods, count.index).options_method.integration.cache_namespace
+  content_handling        = element(local.api_gateway_methods, count.index).options_method.integration.content_handling
+  timeout_milliseconds    = element(local.api_gateway_methods, count.index).options_method.integration.timeout_milliseconds
+
+  depends_on = [aws_api_gateway_method.options_method]
+}
+
+# Resource    : Api Gateway Integration Response
+# Description : Terraform resource to create Api Gateway Integration Response on AWS for creating api.
 resource aws_api_gateway_integration_response options_integration_response {
-  count              = length(aws_api_gateway_integration.options_integration.*.id)
-  rest_api_id        = aws_api_gateway_rest_api.default.*.id[0]
-  resource_id        = lookup(local.resource_method_map, element(local.api_gateway_methods, count.index).resource_path)
-  http_method        = aws_api_gateway_method.options_method.*.http_method[count.index]
-  status_code        = aws_api_gateway_method_response.options_200.*.status_code[count.index]
-  
-  response_parameters = element(element(local.api_gateway_methods, count.index).method_responses, 0).response_parameters
-  response_templates  = element(element(local.api_gateway_methods, count.index).method_responses, 0).response_template
+  count               = length(aws_api_gateway_integration.options_integration.*.id)
+  rest_api_id         = aws_api_gateway_rest_api.default.*.id[0]
+  resource_id         = lookup(local.resource_method_map, element(local.api_gateway_methods, count.index).resource_path)
+  http_method         = element(local.api_gateway_methods, count.index).options_method.http_method
+  status_code         = element(local.api_gateway_methods, count.index).options_method.response.status_code
+  response_parameters = element(local.api_gateway_methods, count.index).options_method.integration_response.response_parameters
+  response_templates  = element(local.api_gateway_methods, count.index).options_method.integration_response.response_template
+  content_handling    = element(local.api_gateway_methods, count.index).options_method.integration_response.content_handling
+  selection_pattern   = element(local.api_gateway_methods, count.index).options_method.integration_response.selection_pattern
 
   depends_on = [
     aws_api_gateway_method_response.options_200,
