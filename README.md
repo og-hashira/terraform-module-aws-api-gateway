@@ -327,6 +327,8 @@ Here are some examples of how you can use this module in your inventory structur
 
 ## Inputs
 
+This module has been implemented to allow the caller to specify as little as possible, and have any other required attributes filled in with sane defaults.  There are opinionated defaults in this module, but every setting can be set by the end user to override the default behavior.
+
 Note:  If you choose to provide the optional objects below, you will have to reference the section below called "Detailed Input Structures" to find which attributes are required for the object.
 
 | Name | Description | Type | Required | Default |
