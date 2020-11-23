@@ -430,7 +430,7 @@ Note:  If you choose to provide the optional objects below, you will have to ref
 | provider_arns | Required for type COGNITO_USER_POOLS) A list of the Amazon Cognito user pool ARNs. Each element is of this format: arn:aws:cognito-idp:{region}:{account_id}:userpool/{user_pool_id}. | `set(string)` | no | `null` |
 
 ## Variable: api_gateway_methods most basic example (the defaults will fill out the other required values, including the options method settings.  See below to override any of them.)
-````json
+````hcl
   api_gateway_methods = [
     {
       resource_path = "getBitlockerKey"
@@ -446,7 +446,7 @@ Note:  If you choose to provide the optional objects below, you will have to ref
 ````
 
 ## Variable: api_gateway_methods complete example with everything you can specify (with defaults specified).  Provided values will override all defaults.
-````json
+````hcl
     api_gateway_methods = [
       {
         resource_path = "method1"
