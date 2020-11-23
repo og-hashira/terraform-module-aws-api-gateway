@@ -596,18 +596,18 @@ variable method_integration_default {
 variable method_response_default {
   type = any
   default = {
-    status_code   = "200"
+    status_code   = null
     response_type = null
     response_models = {
-      "application/json" = "Empty"
+      # "application/json" = "Empty"
     }
 
     response_template = null
     response_parameters = {
-      "method.response.header.Access-Control-Allow-Credentials" = true
-      "method.response.header.Access-Control-Allow-Origin"      = true
-      "method.response.header.Access-Control-Allow-Headers"     = true
-      "method.response.header.Access-Control-Allow-Methods"     = true
+      # "method.response.header.Access-Control-Allow-Credentials" = true
+      # "method.response.header.Access-Control-Allow-Origin"      = true
+      # "method.response.header.Access-Control-Allow-Headers"     = true
+      # "method.response.header.Access-Control-Allow-Methods"     = true
     }
   }
 }
@@ -681,7 +681,7 @@ variable options_response_default {
   default = {
     status_code = "200"
     response_models = {
-      "application/json" = "Empty"
+      # "application/json" = "Empty"
     }
     response_parameters = {
       "method.response.header.Access-Control-Allow-Credentials" = true
@@ -697,12 +697,14 @@ variable options_integration_response_default {
   default = {
     status_code       = "200"
     selection_pattern = null
-    response_template = null
+    response_template = {
+      "application/json" = ""
+    }
     response_parameters = {
-      # "method.response.header.Access-Control-Allow-Credentials" = "'true'"
-      # "method.response.header.Access-Control-Allow-Origin"      = "'*'"
-      # "method.response.header.Access-Control-Allow-Headers"     = "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Amz-User-Agent'"
-      # "method.response.header.Access-Control-Allow-Methods"     = "'OPTIONS,GET,POST'"
+      "method.response.header.Access-Control-Allow-Credentials" = "'true'"
+      "method.response.header.Access-Control-Allow-Origin"      = "'http://localhost:3000'"
+      "method.response.header.Access-Control-Allow-Headers"     = "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Amz-User-Agent'"
+      "method.response.header.Access-Control-Allow-Methods"     = "'OPTIONS,GET,POST'"
     }
     content_handling = null # Null == Passthrough
   }
