@@ -16,9 +16,6 @@ locals {
   // api_gateway
   api_gateway = merge(var.api_gateway_default, var.api_gateway)
 
-  // api_gateway_deployment defaults
-  api_gateway_deployment = var.api_gateway_deployment != null ? merge(var.api_gateway_deployment_default, var.api_gateway_deployment) : null
-
   // api_gateway_stages defaults
   api_gateway_stages = var.api_gateway_stages != null ? [for stage in var.api_gateway_stages : merge(var.api_gateway_stage_default, stage)] : null
 
@@ -165,7 +162,13 @@ resource aws_api_gateway_deployment default {
   rest_api_id = aws_api_gateway_rest_api.default.*.id[0]
   stage_name  = local.api_gateway.default_deployment_name
   description = local.api_gateway.default_deployment_description
-  # variables         = local.api_gateway_deployment.variables
+  variables   = local.api_gateway.default_deployment_variables
+
+  triggers = {
+    redeployment = sha1(join(",", list(
+      jsonencode(aws_api_gateway_integration.default),
+    )))
+  }
 
   depends_on = [aws_api_gateway_method.default, aws_api_gateway_integration.default]
 }

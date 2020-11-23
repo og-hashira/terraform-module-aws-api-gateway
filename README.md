@@ -336,7 +336,6 @@ Note:  If you choose to provide the optional objects below, you will have to ref
 | enabled | Whether to create the REST API or not | `bool` | no | `true` |
 | tags | Tags to be applied to the resource | `map(string)` | no | `{}` |
 | api_gateway | AWS API Gateway Settings | `object` | yes | `{}` |
-| api_gateway_deployment | AWS API Gateway Deployment | `object` | no | `{}`  |
 | api_gateway_stages | AWS API Gateway Stages | `set(object)` | no | `[]` |
 | api_gateway_models | AWS API Gateway Models | `set(object)` | no | `[]` |
 | api_keys | AWS API Keys | `set(any)` | no | `[]` |
@@ -367,17 +366,12 @@ Note:  If you choose to provide the optional objects below, you will have to ref
 | minimum_compression_size | Minimum response size to compress for the REST API. Integer between -1 and 10485760 (10MB). Setting a value greater than -1 will enable compression, -1 disables compression (default). | `number` | no | `null` |
 | custom_domain | The custom domain to associate to this REST API. | `string` | no | `null` |
 | acm_cert_arn | The AWS ACM Certificate arn to associate to this REST API custom domain. | `string` | no | `null` |
+| default_deployment_name | Name of the deployment. | `string` | yes | `null` |
+| default_deployment_description | The description of the deployment. | `string` | no | Managed by the P&G AWS API Gateway Terraform Module https://github.com/procter-gamble/terraform-module-aws-api-gateway.git |
+| default_deployment_variables | A map that defines variables for the deployment. | `object` | no | `null` |
 | client_cert_enabled | Whether or not to generate a client certificate for this REST API. | `string` | no | `false` |
 | client_cert_description | Managed by the P&G AWS API Gateway Terraform Module https://github.com/procter-gamble/terraform-module-aws-api-gateway.git | `string` | no | `null` |
 | policy | The IAM Policy applied to the REST API. | `string` | no | `null` |
-
-### Variable: api_gateway_deployment
-| Name | Description | Type | Required  | Default|
-|------|-------------|------|---------|:--------:|
-| stage_name | Name of the deployment. | `string` | yes | `null` |
-| stage_description | The description of the stage. | `string` | no | Managed by the P&G AWS API Gateway Terraform Module https://github.com/procter-gamble/terraform-module-aws-api-gateway.git |
-| description | The description of the deployment. | `string` | no | Managed by the P&G AWS API Gateway Terraform Module https://github.com/procter-gamble/terraform-module-aws-api-gateway.git |
-| variables | A map that defines variables for the deployment. | `object` | no | `null` |
 
 ### Variable: api_gateway_stage
 | Name | Description | Type | Required  | Default|

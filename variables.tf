@@ -42,6 +42,7 @@ variable api_gateway_default {
     base_path_mapping_active_stage_name = null
     default_deployment_name             = "default"
     default_deployment_description      = null
+    default_deployment_variables        = null
     client_cert_enabled                 = false
     client_cert_description             = "Managed by the P&G AWS API Gateway Terraform Module https://github.com/procter-gamble/terraform-module-aws-api-gateway.git"
   }
@@ -100,6 +101,12 @@ variable api_gateway {
   validation {
     condition     = can(tostring(lookup(var.api_gateway, "default_deployment_description", "")))
     error_message = "Optional attribute 'default_deployment_description' of 'api_gateway' must be a string if specified."
+  }
+
+  // default_deployment_variables
+  validation {
+    condition     = var.api_gateway != null ? can(tomap(lookup(var.api_gateway, "default_deployment_variables", null))) : true
+    error_message = "Optional attribute 'default_deployment_variables' of 'api_gateway' must be an object map."
   }
 
   // client_cert_enabled
@@ -175,55 +182,6 @@ variable api_gateway {
       length(try(var.api_gateway.endpoint_configuration.vpc_endpoint_ids, [])) == 0
     )
     error_message = "Attribute types of 'api_gateway.endpoint_configuration.vpc_endpoint_ids' must: \n\t- only be specified when api_gateway.endpoint_configuration.types is PRIVATE\n\t- be a set of VPC Endpoint IDs\n."
-  }
-}
-
-variable api_gateway_deployment_default {
-  description = "AWS API Gateway deployment default."
-  type        = any
-  default = {
-    stage_name        = null
-    stage_description = "Managed by the P&G AWS API Gateway Terraform Module https://github.com/procter-gamble/terraform-module-aws-api-gateway.git"
-    description       = "Managed by the P&G AWS API Gateway Terraform Module https://github.com/procter-gamble/terraform-module-aws-api-gateway.git"
-    variables         = null
-  }
-}
-
-variable api_gateway_deployment {
-  description = "AWS API Gateway deployment."
-  default     = null
-  type        = any
-  /*
-  type = object({
-    stage_name        = string (required) - The name of the model.
-    stage_description = string (optional) - The description of the stage.
-    description       = string (optional) - The description of the model.
-    variables         = map (Optional) - A map that defines variables for the stage.
-  })
-  */
-
-  // stage_name
-  validation {
-    condition     = var.api_gateway_deployment != null ? try(length(tostring(lookup(var.api_gateway_deployment, "stage_name", null))) > 1, false) : true
-    error_message = "If the optional api_gateway_deployment object is provided, attribute stage_name of api_gateway_deployment must be provided and must be a string of length > 1."
-  }
-
-  // stage_description
-  validation {
-    condition     = var.api_gateway_deployment != null ? can(tostring(lookup(var.api_gateway_deployment, "stage_description", ""))) : true
-    error_message = "Optional attribute stage_description of api_gateway_deployment must be a string if specified."
-  }
-
-  // description
-  validation {
-    condition     = var.api_gateway_deployment != null ? can(tostring(lookup(var.api_gateway_deployment, "description", ""))) : true
-    error_message = "Optional attribute description of api_gateway_deployment must be a string if specified."
-  }
-
-  // variables
-  validation {
-    condition     = var.api_gateway_deployment != null ? can(tomap(lookup(var.api_gateway_deployment, "variables", null))) : true
-    error_message = "Optional attribute variables of api_gateway_deployment must be an object map."
   }
 }
 
@@ -596,7 +554,7 @@ variable method_integration_default {
 variable method_response_default {
   type = any
   default = {
-    status_code   = null
+    status_code   = "200"
     response_type = null
     response_models = {
       # "application/json" = "Empty"
