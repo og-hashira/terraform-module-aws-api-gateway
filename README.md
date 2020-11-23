@@ -429,6 +429,142 @@ Note:  If you choose to provide the optional objects below, you will have to ref
 | authorizer_credentials | The credentials required for the authorizer. To specify an IAM Role for API Gateway to assume, use the IAM Role ARN. | `string` | no | `null` |
 | provider_arns | Required for type COGNITO_USER_POOLS) A list of the Amazon Cognito user pool ARNs. Each element is of this format: arn:aws:cognito-idp:{region}:{account_id}:userpool/{user_pool_id}. | `set(string)` | no | `null` |
 
+## Variable: api_gateway_methods most basic example (the defaults will fill out the other required values, including the options method settings.  See below to override any of them.)
+````json
+  api_gateway_methods = [
+    {
+      resource_path = "getBitlockerKey"
+      api_method = {
+        authorizer_name = "pingFedAuth"
+
+        integration = {
+          uri = module.app_lambda.this_lambda_function_invoke_arn
+        }
+      }
+    }
+  ]
+````
+
+## Variable: api_gateway_methods complete example with everything you can specify (with defaults specified).  Provided values will override all defaults.
+````json
+    api_gateway_methods = [
+      {
+        resource_path = "method1"
+        api_method = {
+          http_method          = "POST"
+          api_key_required     = false
+          request_models       = null
+          request_validator_id = null
+          request_parameters   = {}
+          authorization        = "CUSTOM"
+          authorizer_id        = null
+          authorizer_name      = null
+          authorization_scopes = null
+
+          integration = {
+            integration_http_method = "POST"
+            type                    = "AWS_PROXY"
+            connection_type         = "INTERNET"
+            connection_id           = null
+            uri                     = null
+            credentials             = null
+            request_templates = {
+              "application/json" = "{ \"statusCode\": 200 }"
+            }
+            request_parameters = {
+            }
+            content_handling     = null # Null == Passthrough
+            passthrough_behavior = null
+            cache_key_parameters = null
+            cache_namespace      = null
+            timeout_milliseconds = 29000
+          }
+
+          integration_response = {
+            status_code       = "200"
+            selection_pattern = null
+            response_template = null
+            response_parameters = {
+            }
+            content_handling = null # Null == Passthrough
+          }
+
+          response = {
+            status_code   = "200"
+            response_type = null
+            response_models = {
+              "application/json" = "Empty"
+            }
+
+            response_template = null
+            response_parameters = {
+              "method.response.header.Access-Control-Allow-Credentials" = true
+              "method.response.header.Access-Control-Allow-Origin"      = true
+              "method.response.header.Access-Control-Allow-Headers"     = true
+              "method.response.header.Access-Control-Allow-Methods"     = true
+            }
+          }
+        }
+        options_method = {
+          http_method          = "OPTIONS"
+          api_key_required     = false
+          request_models       = null
+          request_validator_id = null
+          request_parameters   = {}
+          authorization        = "NONE"
+          authorizer_id        = null
+          authorizer_name      = null
+          authorization_scopes = null
+
+          integration = {
+            integration_http_method = null
+            type                    = "MOCK"
+            connection_type         = null
+            connection_id           = null
+            uri                     = null
+            credentials             = null
+            request_templates = {
+              "application/json" = "{ \"statusCode\": 200 }"
+            }
+            request_parameters = {
+            }
+            content_handling     = "CONVERT_TO_TEXT"
+            passthrough_behavior = null
+            cache_key_parameters = null
+            cache_namespace      = null
+            timeout_milliseconds = 29000
+          }
+
+          integration_response = {
+            status_code       = "200"
+            selection_pattern = null
+            response_template = null
+            response_parameters = {
+            }
+            content_handling = null # Null == Passthrough
+          }
+
+          response = {
+            status_code   = "200"
+            response_type = null
+            response_models = {
+              "application/json" = "Empty"
+            }
+
+            response_template = null
+            response_parameters = {
+              "method.response.header.Access-Control-Allow-Credentials" = true
+              "method.response.header.Access-Control-Allow-Origin"      = true
+              "method.response.header.Access-Control-Allow-Headers"     = true
+              "method.response.header.Access-Control-Allow-Methods"     = true
+            }
+          }
+        }
+      },
+      ... another method
+    }
+  ]
+````
 ### Variable: api_gateway_methods
 | Name | Description | Type | Required  | Default|
 |------|-------------|------|---------|:--------:|
