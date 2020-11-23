@@ -31,7 +31,7 @@ This module has the following dependencies:
 
 ## Examples
 
-Here is an example of how you can use this module in your inventory structure:
+Here are some examples of how you can use this module in your inventory structure:
 ### Basic Example
 ```hcl
   module "api_gateway" {
