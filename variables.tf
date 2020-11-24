@@ -557,7 +557,7 @@ variable method_response_default {
     status_code   = "200"
     response_type = null
     response_models = {
-      # "application/json" = "Empty"
+      "application/json" = "Empty"
     }
 
     response_template = null
