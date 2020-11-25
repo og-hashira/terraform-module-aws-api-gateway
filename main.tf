@@ -31,6 +31,7 @@ locals {
   // authorizer_definitions
   authorizer_definitions = var.authorizer_definitions != null ? [for auth in var.authorizer_definitions : merge(var.authorizer_definition_default, auth)] : null
 
+  // if cors_origin_domain is specified, add it to the options gateway response
   response_parameters = {
     "method.response.header.Access-Control-Allow-Credentials" = "'true'"
     "method.response.header.Access-Control-Allow-Origin"      = "'${var.cors_origin_domain}'"
@@ -38,7 +39,7 @@ locals {
     "method.response.header.Access-Control-Allow-Methods"     = "'OPTIONS,GET,POST'"
   }
   
-  options_integration_response_default = var.cors_origin_domain != "" ? merge(var.options_integration_response_default, local.response_parameters) : var.options_integration_response_default
+  options_integration_response_default = var.cors_origin_domain != "" ? merge(var.options_integration_response_default, {response_parameters = local.response_parameters}) : var.options_integration_response_default
 
   // api_gateway_methods
   api_gateway_methods = [for method in var.api_gateway_methods :
