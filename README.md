@@ -231,6 +231,12 @@ Here are some examples of how you can use this module in your inventory structur
     vpc_subnet_ids        = ["subnet-0fc6bcf1909125b68"]
     vpc_security_group_ids = [module.lambda_security_group.this_security_group_id]
 
+    kms_key_arn = module.kms.arn # From github.com/procter-gamble/terraform-module-kms
+
+    environment_variables = {
+      ORIGIN = var.cors_origin_domain
+    }
+    
     ######################
     # Additional policies
     ######################
@@ -302,7 +308,7 @@ Here are some examples of how you can use this module in your inventory structur
       PingClientID    = data.aws_ssm_parameter.ping_client_id.value
       Domain          = data.aws_ssm_parameter.ping_instance.value
       GroupAttributes = "{\"isAdmin\": \"GDS-Infosec-Arch-Engineering\"}"
-      COOKIE_AUTH     = false
+      COOKIE_AUTH     = true
     }
 
     ######################
