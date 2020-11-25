@@ -172,21 +172,21 @@ resource aws_api_gateway_deployment default {
 # Resource    : Api Gateway Stage
 # Description : Terraform resource to create Api Gateway Stage on AWS
 resource aws_api_gateway_stage default {
-  count = length(local.api_gateway_stages)
+  for_each = { for stage in local.api_gateway_stages : stage.stage_name => stage }
 
   rest_api_id           = aws_api_gateway_rest_api.default.*.id[0]
   deployment_id         = aws_api_gateway_deployment.default.*.id[0]
-  stage_name            = element(local.api_gateway_stages, count.index).stage_name
-  cache_cluster_enabled = element(local.api_gateway_stages, count.index).cache_cluster_enabled
-  cache_cluster_size    = element(local.api_gateway_stages, count.index).cache_cluster_size
-  client_certificate_id = element(local.api_gateway_stages, count.index).client_certificate_id != null ? element(local.api_gateway_stages, count.index).client_certificate_id : (local.api_gateway.client_cert_enabled ? aws_api_gateway_client_certificate.default.*.id[0] : "")
-  description           = element(local.api_gateway_stages, count.index).stage_description
-  documentation_version = element(local.api_gateway_stages, count.index).documentation_version
-  variables             = element(local.api_gateway_stages, count.index).stage_variables
-  xray_tracing_enabled  = element(local.api_gateway_stages, count.index).xray_tracing_enabled
+  stage_name            = each.value["stage_name"]
+  cache_cluster_enabled = each.value["cache_cluster_enabled"]
+  cache_cluster_size    = each.value["cache_cluster_size"]
+  client_certificate_id = each.value["client_certificate_id"] != null ? each.value["client_certificate_id"] : (local.api_gateway.client_cert_enabled ? aws_api_gateway_client_certificate.default.*.id[0] : "")
+  description           = each.value["stage_description"]
+  documentation_version = each.value["documentation_version"]
+  variables             = each.value["stage_variables"]
+  xray_tracing_enabled  = each.value["xray_tracing_enabled"]
 
   dynamic "access_log_settings" {
-    for_each = lookup(element(local.api_gateway_stages, count.index), "access_log_settings")
+    for_each = each.value["access_log_settings"]
     content {
       destination_arn = access_log_settings.value["destination_arn"]
       format          = access_log_settings.value["format"]
