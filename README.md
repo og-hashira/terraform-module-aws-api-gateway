@@ -42,6 +42,7 @@ Here are some examples of how you can use this module in your inventory structur
       name = "api-gateway"
     }
 
+    // look for "api_gateway_methods complete example" below for complete data structure
     api_gateway_methods = [
       {
         resource_path   = "myPath"
@@ -59,50 +60,64 @@ Here are some examples of how you can use this module in your inventory structur
 
 ### Basic Example with Lambda Authorizers and a Custom Domain
 ```hcl
-  module "api_gateway" {
-    source    = "git@github.com:procter-gamble/terraform-module-aws-api-gateway"
-    providers = { aws = aws }
+  ###################
+# API Gateway
+###################
+module "api_gateway" {
+  source    = "git@github.com:procter-gamble/terraform-module-aws-api-gateway"
+  providers = { aws = aws }
 
-    tags = var.tags
+  tags = var.tags
 
-    api_gateway = {
-      name                                = "serverless-bitlocker-recovery"
-      hosted_zone_id                      = <hosted_zone_id>
-      custom_domain                       = "api.${var.domain}"
-      acm_cert_arn                        = <cert_arn>
-      base_path_mapping_active_stage_name = ${terraform.workspace}
+  api_gateway = {
+    name                                = "serverless-bitlocker-recovery"
+    hosted_zone_id                      = data.aws_ssm_parameter.hosted_zone.value
+    custom_domain                       = "api.${var.domain}"
+    acm_cert_arn                        = module.acm_cert.arn
+    base_path_mapping_active_stage_name = ${terraform.workspace}
+  }
+
+  api_gateway_stages = [
+    {
+      stage_name        = "non-prod"
+      stage_description = "The stage defined for non-prod, tied to the default deployment."
+    },
+  ]
+
+  authorizer_definitions = [
+    {
+      authorizer_name = "pingFedAuth"
+      authorizer_uri  = module.ping_authorizer.this_lambda_function_invoke_arn
     }
+  ]
 
-    api_gateway_stages = [
-      {
-        stage_name           = ${terraform.workspace}
-        stage_description    = "The stage defined for ${terraform.workspace}, tied to the default deployment."
-      }
-    ]
-
-    authorizer_definitions = [
-      {
+  // look for "api_gateway_methods complete example" below for complete data structure
+  api_gateway_methods = [
+    {
+      resource_path = "getBitlockerKey"
+      api_method = {
+        http_method     = "GET"
         authorizer_name = "pingFedAuth"
-        authorizer_uri  = module.ping_authorizer.this_lambda_function_invoke_arn # Using another module for lambda creation
+
+        integration = {
+          uri = module.app_lambda.this_lambda_function_invoke_arn
+        }
       }
-    ]
-
-    api_gateway_methods = [
-      {
-        resource_path = "getBitlockerKey"
-        api_method = {
-          http_method = "GET"
-          authorizer_name = "pingFedAuth"
-
-          integration = {
-            uri = module.app_lambda.this_lambda_function_invoke_arn # Using another module for lambda creation
+      options_method = {
+        integration_response = {
+          response_parameters = {
+            "method.response.header.Access-Control-Allow-Credentials" = "'true'"
+            "method.response.header.Access-Control-Allow-Origin"      = "'https://${var.domain}'"
+            "method.response.header.Access-Control-Allow-Headers"     = "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Amz-User-Agent'"
+            "method.response.header.Access-Control-Allow-Methods"     = "'OPTIONS,GET,POST'"
           }
         }
       }
-    ]
+    }
+  ]
 
-    depends_on = [module.acm_cert]
-  }
+  depends_on = [module.acm_cert]
+}
 ```
 
 ### Example creating the app lambda from source, a lambda authorizer from source, a custom certificate, a custom domain, and api gateway
@@ -137,9 +152,9 @@ Here are some examples of how you can use this module in your inventory structur
 
     api_gateway_stages = [
       {
-        stage_name           = ${terraform.workspace}
-        stage_description    = "The stage defined for ${terraform.workspace}, tied to the default deployment."
-      }
+        stage_name        = "non-prod"
+        stage_description = "The stage defined for non-prod, tied to the default deployment."
+      },
     ]
 
     authorizer_definitions = [
@@ -149,15 +164,26 @@ Here are some examples of how you can use this module in your inventory structur
       }
     ]
 
+    // look for "api_gateway_methods complete example" below for complete data structure
     api_gateway_methods = [
       {
         resource_path = "getBitlockerKey"
         api_method = {
-          http_method = "GET"
+          http_method     = "GET"
           authorizer_name = "pingFedAuth"
 
           integration = {
             uri = module.app_lambda.this_lambda_function_invoke_arn
+          }
+        }
+        options_method = {
+          integration_response = {
+            response_parameters = {
+              "method.response.header.Access-Control-Allow-Credentials" = "'true'"
+              "method.response.header.Access-Control-Allow-Origin"      = "'https://${var.domain}'"
+              "method.response.header.Access-Control-Allow-Headers"     = "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Amz-User-Agent'"
+              "method.response.header.Access-Control-Allow-Methods"     = "'OPTIONS,GET,POST'"
+            }
           }
         }
       }
