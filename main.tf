@@ -31,6 +31,13 @@ locals {
   // authorizer_definitions
   authorizer_definitions = var.authorizer_definitions != null ? [for auth in var.authorizer_definitions : merge(var.authorizer_definition_default, auth)] : null
 
+  options_integration_response_default = merge("response_parameters = {
+    \"method.response.header.Access-Control-Allow-Credentials\" = \"'true'\"
+    \"method.response.header.Access-Control-Allow-Origin"      = \"'https://${var.domain}'\"
+    \"method.response.header.Access-Control-Allow-Headers"     = \"'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Amz-User-Agent'\"
+    \"method.response.header.Access-Control-Allow-Methods"     = \"'OPTIONS,GET,POST'\"
+    }",var.options_integration_response_default)
+
   // api_gateway_methods
   api_gateway_methods = [for method in var.api_gateway_methods :
     merge(method,
@@ -45,7 +52,7 @@ locals {
         var.api_gateway_options_default,
         try(method.options_method, {}),
         try({ integration = merge(var.options_integration_default, method.options_method.integration) }, { integration = var.options_integration_default }),
-        try({ integration_response = merge(var.options_integration_response_default, method.options_method.integration_response) }, { integration_response = var.options_integration_response_default }),
+        try({ integration_response = merge(local.options_integration_response_default, method.options_method.integration_response) }, { integration_response = local.options_integration_response_default }),
         try({ response = merge(var.options_response_default, method.options_method.response) }, { response = var.options_response_default }),
       ) },
   )]
