@@ -79,11 +79,6 @@ locals {
       local.max_number_of_levels > 4 ? zipmap(flatten(local.length_paths_map[5]), values(aws_api_gateway_resource.fifth_paths)[*]["id"]) : {}
     )
   )
-
-  ###################################
-  ## Authorizor name to ID mapping ##
-  ###################################
-  authorizers = zipmap([for auth in local.authorizer_definitions : auth.authorizer_name], aws_api_gateway_authorizer.default[*]["id"])
 }
 
 # Resource    : API Gateway 
@@ -240,17 +235,17 @@ resource aws_api_gateway_vpc_link default {
 # Resource    : Api Gateway Authorizer
 # Description : Terraform resource to create Api Gateway Authorizer on AWS.
 resource aws_api_gateway_authorizer default {
-  count = length(local.authorizer_definitions)
+  for_each = { for auth in local.authorizer_definitions : auth.authorizer_name => auth }
 
   rest_api_id                      = aws_api_gateway_rest_api.default.*.id[0]
-  name                             = element(local.authorizer_definitions, count.index).authorizer_name
-  authorizer_uri                   = element(local.authorizer_definitions, count.index).authorizer_uri
-  authorizer_credentials           = element(local.authorizer_definitions, count.index).authorizer_credentials
-  authorizer_result_ttl_in_seconds = element(local.authorizer_definitions, count.index).authorizer_result_ttl_in_seconds
-  identity_source                  = element(local.authorizer_definitions, count.index).identity_source
-  type                             = element(local.authorizer_definitions, count.index).authorizer_type
-  identity_validation_expression   = element(local.authorizer_definitions, count.index).identity_validation_expression
-  provider_arns                    = element(local.authorizer_definitions, count.index).provider_arns
+  name                             = each.value["authorizer_name"]
+  authorizer_uri                   = each.value["authorizer_uri"]
+  authorizer_credentials           = each.value["authorizer_credentials"]
+  authorizer_result_ttl_in_seconds = each.value["authorizer_result_ttl_in_seconds"]
+  identity_source                  = each.value["identity_source"]
+  type                             = each.value["authorizer_type"]
+  identity_validation_expression   = each.value["identity_validation_expression"]
+  provider_arns                    = each.value["provider_arns"]
 }
 
 # Resource    : Api Gateway Resources (curently supporting up to 5 nested levels)
@@ -304,11 +299,15 @@ resource aws_api_gateway_resource fifth_paths {
 resource aws_api_gateway_method default {
   count = length(local.api_gateway_methods)
 
-  rest_api_id          = aws_api_gateway_rest_api.default.*.id[0]
-  resource_id          = lookup(local.resource_method_map, element(local.api_gateway_methods, count.index).resource_path)
-  http_method          = element(local.api_gateway_methods, count.index).api_method.http_method
-  authorization        = element(local.api_gateway_methods, count.index).api_method.authorization
-  authorizer_id        = element(local.api_gateway_methods, count.index).api_method.authorizer_id != null ? element(local.api_gateway_methods, count.index).api_method.authorizer_id : element(local.api_gateway_methods, count.index).api_method.authorizer_name != null ? lookup(local.authorizers, element(local.api_gateway_methods, count.index).api_method.authorizer_name, null) : null
+  rest_api_id   = aws_api_gateway_rest_api.default.*.id[0]
+  resource_id   = lookup(local.resource_method_map, element(local.api_gateway_methods, count.index).resource_path)
+  http_method   = element(local.api_gateway_methods, count.index).api_method.http_method
+  authorization = element(local.api_gateway_methods, count.index).api_method.authorization
+  authorizer_id = (element(local.api_gateway_methods, count.index).api_method.authorizer_id != null ?
+    element(local.api_gateway_methods, count.index).api_method.authorizer_id :
+    element(local.api_gateway_methods, count.index).api_method.authorizer_name != null ?
+    aws_api_gateway_authorizer.default[element(local.api_gateway_methods, count.index).api_method.authorizer_name].id :
+  null)
   authorization_scopes = element(local.api_gateway_methods, count.index).api_method.authorization_scopes
   api_key_required     = element(local.api_gateway_methods, count.index).api_method.api_key_required
   request_models       = element(local.api_gateway_methods, count.index).api_method.request_models
@@ -383,11 +382,15 @@ resource aws_api_gateway_integration_response default {
 resource aws_api_gateway_method options_method {
   count = length(local.api_gateway_methods)
 
-  rest_api_id          = aws_api_gateway_rest_api.default.*.id[0]
-  resource_id          = lookup(local.resource_method_map, element(local.api_gateway_methods, count.index).resource_path)
-  http_method          = element(local.api_gateway_methods, count.index).options_method.http_method
-  authorization        = element(local.api_gateway_methods, count.index).options_method.authorization
-  authorizer_id        = element(local.api_gateway_methods, count.index).options_method.authorizer_id != null ? element(local.api_gateway_methods, count.index).options_method.authorizer_id : element(local.api_gateway_methods, count.index).options_method.authorizer_name != null ? lookup(local.authorizers, element(local.api_gateway_methods, count.index).options_method.authorizer_name, null) : null
+  rest_api_id   = aws_api_gateway_rest_api.default.*.id[0]
+  resource_id   = lookup(local.resource_method_map, element(local.api_gateway_methods, count.index).resource_path)
+  http_method   = element(local.api_gateway_methods, count.index).options_method.http_method
+  authorization = element(local.api_gateway_methods, count.index).options_method.authorization
+  authorizer_id = (element(local.api_gateway_methods, count.index).api_method.authorizer_id != null ?
+                      element(local.api_gateway_methods, count.index).api_method.authorizer_id :
+                      element(local.api_gateway_methods, count.index).api_method.authorizer_name != null ?
+                      aws_api_gateway_authorizer.default[element(local.api_gateway_methods, count.index).api_method.authorizer_name].id :
+                        null)
   authorization_scopes = element(local.api_gateway_methods, count.index).options_method.authorization_scopes
   api_key_required     = element(local.api_gateway_methods, count.index).options_method.api_key_required
   request_models       = element(local.api_gateway_methods, count.index).options_method.request_models

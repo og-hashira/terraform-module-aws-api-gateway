@@ -2,12 +2,12 @@
 
 
 api_gateway = {
-  name        = "api-gateway"
-  description = "The test api-gateway"
+  name = "api-gateway"
+  # description = "The test api-gateway"
   # binary_media_types                  = ["UTF-8-encoded"]
   # minimum_compression_size            = -1
-  api_key_source = "HEADER"
-  type           = ["EDGE"]
+  # api_key_source = "HEADER"
+  # type           = ["EDGE"]
   # custom_domain = "api.bitlocker.np.pgcloud.com"
   # acm_cert_arn   = ""
   # api_gateway_client_cert_enabled     = false
@@ -92,24 +92,27 @@ authorizer_definitions = [
     # provider_arns = []
   }
 ]
-
+enabled = true
 api_gateway_methods = [
   {
-    resource_path = "blah"
+    resource_path = "getBitlockerKey"
     api_method = {
       http_method     = "GET"
       authorizer_name = "pingFedAuth"
+      # authorization = "NONE"
       integration = {
         uri = "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:459235286243:function:my-awesome-lambda/invocations"
       }
-    },
-    # resource_path = "blah2"
-    # api_method = {
-    #   http_method     = "POST"
-    #   authorizer_name = "pingFedAuth"
-    #   integration = {
-    #     uri         = "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:459235286243:function:my-awesome-lambda/invocations"
-    #   }
-    # }
+    }
+    options_method = {
+      integration_response = {
+        response_parameters = {
+          "method.response.header.Access-Control-Allow-Credentials" = "'true'"
+          "method.response.header.Access-Control-Allow-Origin"      = "'https://blah'"
+          "method.response.header.Access-Control-Allow-Headers"     = "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Amz-User-Agent'"
+          "method.response.header.Access-Control-Allow-Methods"     = "'OPTIONS,GET,POST'"
+        }
+      }
+    }
   }
 ]

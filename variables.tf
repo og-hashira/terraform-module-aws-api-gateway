@@ -422,7 +422,7 @@ variable authorizer_definition_default {
     identity_source                  = "method.request.header.Authorization"
     identity_validation_expression   = null
     authorizer_result_ttl_in_seconds = 0
-    authorizer_type                  = "TOKEN"
+    authorizer_type                  = "REQUEST"
     authorizer_credentials           = null
     provider_arns                    = null
   }
@@ -538,10 +538,6 @@ variable method_integration_default {
       "application/json" = "{ \"statusCode\": 200 }"
     }
     request_parameters = {
-      # "method.request.header.Access-Control-Allow-Credentials" = "'true'"
-      # "method.request.header.Access-Control-Allow-Origin"      = "'*'"
-      # "method.request.header.Access-Control-Allow-Headers"     = "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Amz-User-Agent'"
-      # "method.request.header.Access-Control-Allow-Methods"     = "'OPTIONS,GET,POST'"
     }
     content_handling     = null # Null == Passthrough
     passthrough_behavior = null
@@ -562,10 +558,6 @@ variable method_response_default {
 
     response_template = null
     response_parameters = {
-      # "method.response.header.Access-Control-Allow-Credentials" = true
-      # "method.response.header.Access-Control-Allow-Origin"      = true
-      # "method.response.header.Access-Control-Allow-Headers"     = true
-      # "method.response.header.Access-Control-Allow-Methods"     = true
     }
   }
 }
@@ -577,10 +569,6 @@ variable method_integration_response_default {
     selection_pattern = null
     response_template = null
     response_parameters = {
-      # "method.response.header.Access-Control-Allow-Credentials" = "'true'"
-      # "method.response.header.Access-Control-Allow-Origin"      = "'*'"
-      # "method.response.header.Access-Control-Allow-Headers"     = "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Amz-User-Agent'"
-      # "method.response.header.Access-Control-Allow-Methods"     = "'OPTIONS,GET,POST'"
     }
     content_handling = null # Null == Passthrough
   }
@@ -621,10 +609,6 @@ variable options_integration_default {
       "application/json" = "{ \"statusCode\": 200 }"
     }
     request_parameters = {
-      # "method.request.header.Access-Control-Allow-Credentials" = "'true'"
-      # "method.request.header.Access-Control-Allow-Origin"      = "'*'"
-      # "method.request.header.Access-Control-Allow-Headers"     = "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Amz-User-Agent'"
-      # "method.request.header.Access-Control-Allow-Methods"     = "'OPTIONS,GET,POST'"
     }
     content_handling     = "CONVERT_TO_TEXT"
     passthrough_behavior = null
@@ -639,7 +623,6 @@ variable options_response_default {
   default = {
     status_code = "200"
     response_models = {
-      # "application/json" = "Empty"
     }
     response_parameters = {
       "method.response.header.Access-Control-Allow-Credentials" = true
@@ -659,10 +642,6 @@ variable options_integration_response_default {
       "application/json" = ""
     }
     response_parameters = {
-      "method.response.header.Access-Control-Allow-Credentials" = "'true'"
-      "method.response.header.Access-Control-Allow-Origin"      = "'http://localhost:3000'"
-      "method.response.header.Access-Control-Allow-Headers"     = "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Amz-User-Agent'"
-      "method.response.header.Access-Control-Allow-Methods"     = "'OPTIONS,GET,POST'"
     }
     content_handling = null # Null == Passthrough
   }
