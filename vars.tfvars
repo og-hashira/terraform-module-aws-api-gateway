@@ -114,5 +114,68 @@ api_gateway_methods = [
         }
       }
     }
+  },
+  {
+    resource_path = "getBitlockerKey/blah"
+    api_method = {
+      http_method     = "GET"
+      authorizer_name = "pingFedAuth"
+      # authorization = "NONE"
+      integration = {
+        uri = "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:459235286243:function:my-awesome-lambda/invocations"
+      }
+    }
+    options_method = {
+      integration_response = {
+        response_parameters = {
+          "method.response.header.Access-Control-Allow-Credentials" = "'true'"
+          "method.response.header.Access-Control-Allow-Origin"      = "'https://blah'"
+          "method.response.header.Access-Control-Allow-Headers"     = "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Amz-User-Agent'"
+          "method.response.header.Access-Control-Allow-Methods"     = "'OPTIONS,GET,POST'"
+        }
+      }
+    }
+  },
+  {
+    resource_path = "getBitlockerKey/blah/getBitlockerKey"
+    api_method = {
+      http_method     = "GET"
+      authorizer_name = "pingFedAuth"
+      # authorization = "NONE"
+      integration = {
+        uri = "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:459235286243:function:my-awesome-lambda/invocations"
+      }
+    }
+    options_method = {
+      integration_response = {
+        response_parameters = {
+          "method.response.header.Access-Control-Allow-Credentials" = "'true'"
+          "method.response.header.Access-Control-Allow-Origin"      = "'https://blah'"
+          "method.response.header.Access-Control-Allow-Headers"     = "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Amz-User-Agent'"
+          "method.response.header.Access-Control-Allow-Methods"     = "'OPTIONS,GET,POST'"
+        }
+      }
+    }
+  },
+  {
+    resource_path = "blah/getBitlockerKey"
+    api_method = {
+      http_method     = "GET"
+      authorizer_name = "pingFedAuth"
+      # authorization = "NONE"
+      integration = {
+        uri = "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:459235286243:function:my-awesome-lambda/invocations"
+      }
+    }
+    options_method = {
+      integration_response = {
+        response_parameters = {
+          "method.response.header.Access-Control-Allow-Credentials" = "'true'"
+          "method.response.header.Access-Control-Allow-Origin"      = "'https://blah'"
+          "method.response.header.Access-Control-Allow-Headers"     = "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Amz-User-Agent'"
+          "method.response.header.Access-Control-Allow-Methods"     = "'OPTIONS,GET,POST'"
+        }
+      }
+    }
   }
 ]

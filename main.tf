@@ -70,13 +70,14 @@ locals {
 
   max_number_of_levels = can(local.length_path_segments_map) ? length(local.length_path_segments_map) : 0
 
+  # resource_method_map = {for item in aws_api_gateway_resource.first_paths : item.}
   resource_method_map = (
     merge(
-      local.max_number_of_levels > 0 ? zipmap(flatten(local.length_paths_map[1]), values(aws_api_gateway_resource.first_paths)[*]["id"]) : {},
-      local.max_number_of_levels > 1 ? zipmap(flatten(local.length_paths_map[2]), values(aws_api_gateway_resource.second_paths)[*]["id"]) : {},
-      local.max_number_of_levels > 2 ? zipmap(flatten(local.length_paths_map[3]), values(aws_api_gateway_resource.third_paths)[*]["id"]) : {},
-      local.max_number_of_levels > 3 ? zipmap(flatten(local.length_paths_map[4]), values(aws_api_gateway_resource.fourth_paths)[*]["id"]) : {},
-      local.max_number_of_levels > 4 ? zipmap(flatten(local.length_paths_map[5]), values(aws_api_gateway_resource.fifth_paths)[*]["id"]) : {}
+      { for item in aws_api_gateway_resource.first_paths : trimprefix(item.path, "/") => item.id }, 
+      { for item in aws_api_gateway_resource.second_paths : trimprefix(item.path, "/") => item.id},
+      { for item in aws_api_gateway_resource.third_paths : trimprefix(item.path, "/") => item.id },
+      { for item in aws_api_gateway_resource.fourth_paths : trimprefix(item.path, "/") => item.id },
+      { for item in aws_api_gateway_resource.fifth_paths : trimprefix(item.path, "/") => item.id }
     )
   )
 }
