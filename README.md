@@ -69,6 +69,8 @@ Here are some examples of how you can use this module in your inventory structur
 
     tags = var.tags
 
+    cors_origin_domain = var.cors_origin_domain
+
     api_gateway = {
       name                                = "serverless-bitlocker-recovery"
       hosted_zone_id                      = data.aws_ssm_parameter.hosted_zone.value
@@ -131,6 +133,8 @@ Here are some examples of how you can use this module in your inventory structur
     providers = { aws = aws }
 
     tags = var.tags
+
+    cors_origin_domain = var.cors_origin_domain
 
     api_gateway = {
       name                                = "serverless-bitlocker-recovery"
@@ -340,6 +344,7 @@ Note:  If you choose to provide the optional objects below, you will have to ref
 | Name | Description | Type | Required | Default |
 |------|-------------|------|---------|:--------:|
 | enabled | Whether to create the REST API or not | `bool` | no | `true` |
+| cors_origin_domain | Providing this value will add the CORS origin to the Options Method Response | `string` | no | `""` |
 | tags | Tags to be applied to the resource | `map(string)` | no | `{}` |
 | api_gateway | AWS API Gateway Settings | `object` | yes | `{}` |
 | api_gateway_stages | AWS API Gateway Stages | `set(object)` | no | `[]` |
