@@ -31,12 +31,14 @@ locals {
   // authorizer_definitions
   authorizer_definitions = var.authorizer_definitions != null ? [for auth in var.authorizer_definitions : merge(var.authorizer_definition_default, auth)] : null
 
-  options_integration_response_default = merge("response_parameters = {
-    \"method.response.header.Access-Control-Allow-Credentials\" = \"'true'\"
-    \"method.response.header.Access-Control-Allow-Origin"      = \"'https://${var.domain}'\"
-    \"method.response.header.Access-Control-Allow-Headers"     = \"'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Amz-User-Agent'\"
-    \"method.response.header.Access-Control-Allow-Methods"     = \"'OPTIONS,GET,POST'\"
-    }",var.options_integration_response_default)
+  response_parameters = {
+    "method.response.header.Access-Control-Allow-Credentials" = "'true'"
+    "method.response.header.Access-Control-Allow-Origin"      = "'${var.cors_origin_domain}'"
+    "method.response.header.Access-Control-Allow-Headers"     = "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Amz-User-Agent'"
+    "method.response.header.Access-Control-Allow-Methods"     = "'OPTIONS,GET,POST'"
+  }
+  
+  options_integration_response_default = var.cors_origin_domain != "" ? merge(var.options_integration_response_default, local.response_parameters) : var.options_integration_response_default
 
   // api_gateway_methods
   api_gateway_methods = [for method in var.api_gateway_methods :

@@ -4,6 +4,12 @@ variable "enabled" {
   description = "Whether to create rest api."
 }
 
+variable cors_origin_domain {
+  type    = string
+  description = "The domain of the site that is calling this api.  e.g. https://bitlocker.pgcloud.com"
+  default = ""
+}
+
 variable tags {
   type        = map(string)
   default     = {}
