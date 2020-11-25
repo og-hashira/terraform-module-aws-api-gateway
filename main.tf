@@ -323,8 +323,8 @@ resource aws_api_gateway_method_response default {
   rest_api_id         = aws_api_gateway_rest_api.default.*.id[0]
   resource_id         = lookup(local.resource_method_map, each.value["resource_path"])
   http_method         = each.value["api_method"]["http_method"]
-  status_code         = each.value["api_method"]["response.status_code"]
-  response_models     = each.value["api_method"]["response.response_models"]
+  status_code         = each.value["api_method"]["response"]["status_code"]
+  response_models     = each.value["api_method"]["response"]["response_models"]
   response_parameters = each.value["api_method"]["response"]["response_parameters"]
 
   depends_on = [aws_api_gateway_method.default]
@@ -407,7 +407,7 @@ resource aws_api_gateway_method_response options_200 {
   rest_api_id         = aws_api_gateway_rest_api.default.*.id[0]
   resource_id         = lookup(local.resource_method_map, each.value["resource_path"])
   http_method         = each.value["options_method"]["http_method"]
-  status_code         = each.value["options_method"]["response.status_code"]
+  status_code         = each.value["options_method"]["response"]["status_code"]
   response_models     = each.value["options_method"]["response"]["response_models"]
   response_parameters = each.value["options_method"]["response"]["response_parameters"]
 
