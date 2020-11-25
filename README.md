@@ -103,16 +103,6 @@ Here are some examples of how you can use this module in your inventory structur
             uri = module.app_lambda.this_lambda_function_invoke_arn
           }
         }
-        options_method = {
-          integration_response = {
-            response_parameters = {
-              "method.response.header.Access-Control-Allow-Credentials" = "'true'"
-              "method.response.header.Access-Control-Allow-Origin"      = "'https://${var.domain}'"
-              "method.response.header.Access-Control-Allow-Headers"     = "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Amz-User-Agent'"
-              "method.response.header.Access-Control-Allow-Methods"     = "'OPTIONS,GET,POST'"
-            }
-          }
-        }
       }
     ]
 
@@ -174,16 +164,6 @@ Here are some examples of how you can use this module in your inventory structur
 
           integration = {
             uri = module.app_lambda.this_lambda_function_invoke_arn
-          }
-        }
-        options_method = {
-          integration_response = {
-            response_parameters = {
-              "method.response.header.Access-Control-Allow-Credentials" = "'true'"
-              "method.response.header.Access-Control-Allow-Origin"      = "'https://${var.domain}'"
-              "method.response.header.Access-Control-Allow-Headers"     = "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Amz-User-Agent'"
-              "method.response.header.Access-Control-Allow-Methods"     = "'OPTIONS,GET,POST'"
-            }
           }
         }
       }
