@@ -212,8 +212,7 @@ Here are some examples of how you can use this module in your inventory structur
   # Build and Deploy Lambda module
   #############################################
   module "app_lambda" {
-    source  = "terraform-aws-modules/lambda/aws"
-    version = "~> 1.0"
+    source  = "git@github.com:procter-gamble/terraform-aws-lambda"
 
     function_name = "bitlocker-recovery-key"
     description   = "Lambda function to call AD via LDAPS and retrieve a bitlocker key based on the computer host name."
@@ -270,8 +269,8 @@ Here are some examples of how you can use this module in your inventory structur
   }
 
   module "ping_authorizer" {
-    source  = "terraform-aws-modules/lambda/aws"
-    version = "~> 1.0"
+    source  = "git@github.com:procter-gamble/terraform-aws-lambda"
+
 
     function_name = "bitlocker-authorizer"
     description   = "Ping Federate authorizer for bitlocker app."
