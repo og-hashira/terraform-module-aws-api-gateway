@@ -185,11 +185,11 @@ resource aws_api_gateway_stage default {
   for_each = { for stage in local.api_gateway_stages : stage.stage_name => stage }
 
   rest_api_id           = aws_api_gateway_rest_api.default[local.api_gateway.name].id
-  deployment_id         = aws_api_gateway_deployment.default[local.api_gateway].id
+  deployment_id         = aws_api_gateway_deployment.default[local.api_gateway.name].id
   stage_name            = each.value["stage_name"]
   cache_cluster_enabled = each.value["cache_cluster_enabled"]
   cache_cluster_size    = each.value["cache_cluster_size"]
-  client_certificate_id = each.value["client_certificate_id"] != null ? each.value["client_certificate_id"] : (local.api_gateway.client_cert_enabled ? aws_api_gateway_client_certificate.default[local.api_gateway].id : "")
+  client_certificate_id = each.value["client_certificate_id"] != null ? each.value["client_certificate_id"] : (local.api_gateway.client_cert_enabled ? aws_api_gateway_client_certificate.default[local.api_gateway.name].id : "")
   description           = each.value["stage_description"]
   documentation_version = each.value["documentation_version"]
   variables             = each.value["stage_variables"]
