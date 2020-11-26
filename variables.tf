@@ -1,9 +1,3 @@
-variable "enabled" {
-  type        = bool
-  default     = true
-  description = "Whether to create rest api."
-}
-
 variable cors_origin_domain {
   type    = string
   description = "The domain of the site that is calling this api.  e.g. https://bitlocker.pgcloud.com"
@@ -513,7 +507,7 @@ variable api_gateway_method_default {
   type        = any
 
   default = {
-    http_method          = "POST"
+    http_method          = "GET"
     api_key_required     = false
     request_models       = null
     request_validator_id = null

@@ -92,7 +92,7 @@ authorizer_definitions = [
     # provider_arns = []
   }
 ]
-enabled = true
+
 api_gateway_methods = [
   {
     resource_path = "getBitlockerKey"

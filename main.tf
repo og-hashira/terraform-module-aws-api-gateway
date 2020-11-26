@@ -80,7 +80,6 @@ locals {
 
   max_number_of_levels = can(local.length_path_segments_map) ? length(local.length_path_segments_map) : 0
 
-  # resource_method_map = {for item in aws_api_gateway_resource.first_paths : item.}
   resource_method_map = (
     merge(
       { for item in aws_api_gateway_resource.first_paths : trimprefix(item.path, "/") => item.id }, 
@@ -95,17 +94,17 @@ locals {
 # Resource    : API Gateway 
 # Description : Terraform resource to create an API Gateway REST API on AWS.
 resource aws_api_gateway_rest_api default {
-  count = var.enabled ? 1 : 0
-
-  api_key_source           = local.api_gateway.api_key_source
-  binary_media_types       = local.api_gateway.binary_media_types
-  description              = local.api_gateway.description
-  minimum_compression_size = local.api_gateway.minimum_compression_size
-  name                     = local.api_gateway.name
-  policy                   = local.api_gateway.policy
+  for_each = var.api_gateway != null ? {for gw in [local.api_gateway]: gw.name => gw} : {}
+  
+  api_key_source           = each.value["api_key_source"]
+  binary_media_types       = each.value["binary_media_types"]
+  description              = each.value["description"]
+  minimum_compression_size = each.value["minimum_compression_size"]
+  name                     = each.value["name"]
+  policy                   = each.value["policy"]
 
   dynamic endpoint_configuration {
-    for_each = local.api_gateway.endpoint_configuration == null ? [] : [local.api_gateway.endpoint_configuration]
+    for_each = each.value["endpoint_configuration"] == null ? [] : [each.value["endpoint_configuration"]]
     content {
       types            = endpoint_configuration.value.types
       vpc_endpoint_ids = lookup(endpoint_configuration.value, "vpc_endpoint_ids", null)
@@ -118,29 +117,29 @@ resource aws_api_gateway_rest_api default {
 # Resource    : Api Gateway Client Certificate
 # Description : Terraform resource to create Api Gateway Client Certificate on AWS.
 resource aws_api_gateway_client_certificate default {
-  count = local.api_gateway.client_cert_enabled == true ? 1 : 0
+  for_each = var.api_gateway != null && local.api_gateway.client_cert_enabled == true ? {for gw in [local.api_gateway]: gw.name => gw} : {}
 
-  description = local.api_gateway.client_cert_description
+  description = each.value["client_cert_description"]
   tags        = var.tags
 }
 
 # Resource    : Api Gateway Custom Domain Name
 # Description : Terraform resource to create Api Gateway Custom Domain on AWS.
 resource aws_api_gateway_domain_name api_domain {
-  count = local.api_gateway.custom_domain != null ? 1 : 0
+  for_each = var.api_gateway != null && local.api_gateway.custom_domain != null ? {for gw in [local.api_gateway]: gw.name => gw} : {}
 
-  certificate_arn = local.api_gateway.acm_cert_arn
-  domain_name     = local.api_gateway.custom_domain
+  certificate_arn = each.value["acm_cert_arn"]
+  domain_name     = each.value["custom_domain"]
 }
 
 # Resource    : Api Gateway Base Path Mapping
 # Description : Terraform resource to create Api Gateway base path mapping on AWS.
 resource aws_api_gateway_base_path_mapping mapping {
-  count = local.api_gateway.custom_domain != null ? 1 : 0
+  for_each = var.api_gateway != null && local.api_gateway.custom_domain != null ? {for gw in [local.api_gateway]: gw.name => gw} : {}
 
-  api_id      = aws_api_gateway_rest_api.default.*.id[0]
-  stage_name  = local.api_gateway.base_path_mapping_active_stage_name
-  domain_name = local.api_gateway.custom_domain
+  api_id      = aws_api_gateway_rest_api.default[local.api_gateway.name].id
+  stage_name  = each.value["base_path_mapping_active_stage_name"]
+  domain_name = each.value["custom_domain"]
 
   depends_on = [aws_api_gateway_deployment.default, aws_api_gateway_stage.default]
 }
@@ -148,10 +147,11 @@ resource aws_api_gateway_base_path_mapping mapping {
 # Resource    : DNS record using Route53.
 # Description : Route53 is not specifically required; any DNS host can be used.
 resource aws_route53_record api_dns {
-  count   = local.api_gateway.custom_domain != null ? 1 : 0
+  for_each = var.api_gateway != null && local.api_gateway.custom_domain != null ? {for gw in [local.api_gateway]: gw.name => gw} : {}
+
   name    = aws_api_gateway_domain_name.api_domain.*.domain_name[0]
   type    = "A"
-  zone_id = local.api_gateway.hosted_zone_id
+  zone_id = each.value["hosted_zone_id"]
 
   alias {
     evaluate_target_health = true
@@ -163,12 +163,12 @@ resource aws_route53_record api_dns {
 # Resource    : Api Gateway Deployment
 # Description : Terraform resource to create Api Gateway Deployment on AWS.
 resource aws_api_gateway_deployment default {
-  count = local.api_gateway.default_deployment_name != null ? 1 : 0
+  for_each = var.api_gateway != null && local.api_gateway.default_deployment_name != null ? {for gw in [local.api_gateway]: gw.name => gw} : {}
 
-  rest_api_id = aws_api_gateway_rest_api.default.*.id[0]
-  stage_name  = local.api_gateway.default_deployment_name
-  description = local.api_gateway.default_deployment_description
-  variables   = local.api_gateway.default_deployment_variables
+  rest_api_id = aws_api_gateway_rest_api.default[local.api_gateway.name].id
+  stage_name  = each.value["default_deployment_name"]
+  description = each.value["default_deployment_description"]
+  variables   = each.value["default_deployment_variables"]
 
   triggers = {
     redeployment = sha1(join(",", list(
@@ -184,7 +184,7 @@ resource aws_api_gateway_deployment default {
 resource aws_api_gateway_stage default {
   for_each = { for stage in local.api_gateway_stages : stage.stage_name => stage }
 
-  rest_api_id           = aws_api_gateway_rest_api.default.*.id[0]
+  rest_api_id           = aws_api_gateway_rest_api.default[local.api_gateway.name].id
   deployment_id         = aws_api_gateway_deployment.default.*.id[0]
   stage_name            = each.value["stage_name"]
   cache_cluster_enabled = each.value["cache_cluster_enabled"]
@@ -211,7 +211,7 @@ resource aws_api_gateway_stage default {
 resource aws_api_gateway_model default {
   for_each = { for model in local.api_gateway_models : model.name => model }
 
-  rest_api_id  = aws_api_gateway_rest_api.default.*.id[0]
+  rest_api_id  = aws_api_gateway_rest_api.default[local.api_gateway.name].id
   name         = each.value["name"]
   description  = each.value["description"]
   content_type = each.value["content_type"]
@@ -248,7 +248,7 @@ resource aws_api_gateway_vpc_link default {
 resource aws_api_gateway_authorizer default {
   for_each = { for auth in local.authorizer_definitions : auth.authorizer_name => auth }
 
-  rest_api_id                      = aws_api_gateway_rest_api.default.*.id[0]
+  rest_api_id                      = aws_api_gateway_rest_api.default[local.api_gateway.name].id
   name                             = each.value["authorizer_name"]
   authorizer_uri                   = each.value["authorizer_uri"]
   authorizer_credentials           = each.value["authorizer_credentials"]
@@ -264,15 +264,15 @@ resource aws_api_gateway_authorizer default {
 resource aws_api_gateway_resource first_paths {
   for_each = local.max_number_of_levels > 0 ? toset(flatten(local.length_path_segments_map[1])) : []
 
-  rest_api_id = aws_api_gateway_rest_api.default.*.id[0]
-  parent_id   = aws_api_gateway_rest_api.default.*.root_resource_id[0]
+  rest_api_id = aws_api_gateway_rest_api.default[local.api_gateway.name].id
+  parent_id   = aws_api_gateway_rest_api.default[local.api_gateway.name].root_resource_id
   path_part   = each.value
 }
 
 resource aws_api_gateway_resource second_paths {
   for_each = local.max_number_of_levels > 1 ? { for path in local.length_path_segments_map[2] : join("/", path) => { segment = path[1], parent = join("/", slice(path, 0, 1)) } } : {}
 
-  rest_api_id = aws_api_gateway_rest_api.default.*.id[0]
+  rest_api_id = aws_api_gateway_rest_api.default[local.api_gateway.name].id
   parent_id   = aws_api_gateway_resource.first_paths[each.value.parent].id
   path_part   = each.value.segment
 }
@@ -280,7 +280,7 @@ resource aws_api_gateway_resource second_paths {
 resource aws_api_gateway_resource third_paths {
   for_each = local.max_number_of_levels > 2 ? { for path in local.length_path_segments_map[3] : join("/", path) => { segment = path[2], parent = join("/", slice(path, 0, 2)) } } : {}
 
-  rest_api_id = aws_api_gateway_rest_api.default.*.id[0]
+  rest_api_id = aws_api_gateway_rest_api.default[local.api_gateway.name].id
   parent_id   = aws_api_gateway_resource.second_paths[each.value.parent].id
   path_part   = each.value.segment
 }
@@ -288,7 +288,7 @@ resource aws_api_gateway_resource third_paths {
 resource aws_api_gateway_resource fourth_paths {
   for_each = local.max_number_of_levels > 3 ? { for path in local.length_path_segments_map[4] : join("/", path) => { segment = path[3], parent = join("/", slice(path, 0, 3)) } } : {}
 
-  rest_api_id = aws_api_gateway_rest_api.default.*.id[0]
+  rest_api_id = aws_api_gateway_rest_api.default[local.api_gateway.name].id
   parent_id   = aws_api_gateway_resource.third_paths[each.value.parent].id
   path_part   = each.value.segment
 }
@@ -296,7 +296,7 @@ resource aws_api_gateway_resource fourth_paths {
 resource aws_api_gateway_resource fifth_paths {
   for_each = local.max_number_of_levels > 4 ? { for path in local.length_path_segments_map[5] : join("/", path) => { segment = path[4], parent = join("/", slice(path, 0, 4)) } } : {}
 
-  rest_api_id = aws_api_gateway_rest_api.default.*.id[0]
+  rest_api_id = aws_api_gateway_rest_api.default[local.api_gateway.name].id
   parent_id   = aws_api_gateway_resource.fourth_paths[each.value.parent].id
   path_part   = each.value.segment
 }
@@ -310,7 +310,7 @@ resource aws_api_gateway_resource fifth_paths {
 resource aws_api_gateway_method default {
   for_each = { for method in local.api_gateway_methods : method.resource_path => method }
 
-  rest_api_id   = aws_api_gateway_rest_api.default.*.id[0]
+  rest_api_id   = aws_api_gateway_rest_api.default[local.api_gateway.name].id
   resource_id   = lookup(local.resource_method_map, each.value["resource_path"])
   http_method   = each.value["api_method"]["http_method"]
   authorization = each.value["api_method"]["authorization"]
@@ -330,7 +330,7 @@ resource aws_api_gateway_method default {
 resource aws_api_gateway_method_response default {
   for_each = { for method in local.api_gateway_methods : method.resource_path => method }
 
-  rest_api_id         = aws_api_gateway_rest_api.default.*.id[0]
+  rest_api_id         = aws_api_gateway_rest_api.default[local.api_gateway.name].id
   resource_id         = lookup(local.resource_method_map, each.value["resource_path"])
   http_method         = each.value["api_method"]["http_method"]
   status_code         = each.value["api_method"]["response"]["status_code"]
@@ -345,7 +345,7 @@ resource aws_api_gateway_method_response default {
 resource aws_api_gateway_integration default {
   for_each = { for method in local.api_gateway_methods : method.resource_path => method }
 
-  rest_api_id             = aws_api_gateway_rest_api.default.*.id[0]
+  rest_api_id             = aws_api_gateway_rest_api.default[local.api_gateway.name].id
   resource_id             = lookup(local.resource_method_map, each.value["resource_path"])
   http_method             = each.value["api_method"]["http_method"]
   integration_http_method = each.value["api_method"]["integration"]["integration_http_method"]
@@ -370,7 +370,7 @@ resource aws_api_gateway_integration default {
 resource aws_api_gateway_integration_response default {
   for_each = { for method in local.api_gateway_methods : method.resource_path => method }
 
-  rest_api_id         = aws_api_gateway_rest_api.default.*.id[0]
+  rest_api_id         = aws_api_gateway_rest_api.default[local.api_gateway.name].id
   resource_id         = lookup(local.resource_method_map, each.value["resource_path"])
   http_method         = each.value["api_method"]["http_method"]
   status_code         = each.value["api_method"]["integration_response"]["status_code"]
@@ -393,7 +393,7 @@ resource aws_api_gateway_integration_response default {
 resource aws_api_gateway_method options_method {
   for_each = { for method in local.api_gateway_methods : method.resource_path => method }
 
-  rest_api_id   = aws_api_gateway_rest_api.default.*.id[0]
+  rest_api_id   = aws_api_gateway_rest_api.default[local.api_gateway.name].id
   resource_id   = lookup(local.resource_method_map, each.value["resource_path"])
   http_method   = each.value["options_method"]["http_method"]
   authorization = each.value["options_method"]["authorization"]
@@ -414,7 +414,7 @@ resource aws_api_gateway_method options_method {
 resource aws_api_gateway_method_response options_200 {
   for_each = { for method in local.api_gateway_methods : method.resource_path => method }
 
-  rest_api_id         = aws_api_gateway_rest_api.default.*.id[0]
+  rest_api_id         = aws_api_gateway_rest_api.default[local.api_gateway.name].id
   resource_id         = lookup(local.resource_method_map, each.value["resource_path"])
   http_method         = each.value["options_method"]["http_method"]
   status_code         = each.value["options_method"]["response"]["status_code"]
@@ -429,7 +429,7 @@ resource aws_api_gateway_method_response options_200 {
 resource aws_api_gateway_integration options_integration {
   for_each = { for method in local.api_gateway_methods : method.resource_path => method }
 
-  rest_api_id             = aws_api_gateway_rest_api.default.*.id[0]
+  rest_api_id             = aws_api_gateway_rest_api.default[local.api_gateway.name].id
   resource_id             = lookup(local.resource_method_map, each.value["resource_path"])
   http_method             = each.value["options_method"]["http_method"]
   integration_http_method = each.value["options_method"]["integration"]["integration_http_method"]
@@ -454,7 +454,7 @@ resource aws_api_gateway_integration options_integration {
 resource aws_api_gateway_integration_response options_integration_response {
   for_each = { for method in local.api_gateway_methods : method.resource_path => method }
 
-  rest_api_id         = aws_api_gateway_rest_api.default.*.id[0]
+  rest_api_id         = aws_api_gateway_rest_api.default[local.api_gateway.name].id
   resource_id         = lookup(local.resource_method_map, each.value["resource_path"])
   http_method         = each.value["options_method"]["http_method"]
   status_code         = each.value["options_method"]["integration_response"]["status_code"]

@@ -348,7 +348,6 @@ Note:  If you choose to provide the optional objects below, you will have to ref
 
 | Name | Description | Type | Required | Default |
 |------|-------------|------|---------|:--------:|
-| enabled | Whether to create the REST API or not | `bool` | no | `true` |
 | cors_origin_domain | Providing this value will add the CORS origin to the Options Method Response | `string` | no | `""` |
 | tags | Tags to be applied to the resource | `map(string)` | no | `{}` |
 | api_gateway | AWS API Gateway Settings | `object` | yes | `{}` |
