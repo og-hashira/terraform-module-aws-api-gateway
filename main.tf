@@ -149,14 +149,14 @@ resource aws_api_gateway_base_path_mapping mapping {
 resource aws_route53_record api_dns {
   for_each = var.api_gateway != null && local.api_gateway.custom_domain != null ? {for gw in [local.api_gateway]: gw.name => gw} : {}
 
-  name    = aws_api_gateway_domain_name.api_domain.*.domain_name[0]
+  name    = aws_api_gateway_domain_name.api_domain[local.api_gateway.name].domain_name
   type    = "A"
   zone_id = each.value["hosted_zone_id"]
 
   alias {
     evaluate_target_health = true
-    name                   = aws_api_gateway_domain_name.api_domain.*.cloudfront_domain_name[0]
-    zone_id                = aws_api_gateway_domain_name.api_domain.*.cloudfront_zone_id[0]
+    name                   = aws_api_gateway_domain_name.api_domain[local.api_gateway.name].cloudfront_domain_name
+    zone_id                = aws_api_gateway_domain_name.api_domain[local.api_gateway.name].cloudfront_zone_id
   }
 }
 
@@ -185,11 +185,11 @@ resource aws_api_gateway_stage default {
   for_each = { for stage in local.api_gateway_stages : stage.stage_name => stage }
 
   rest_api_id           = aws_api_gateway_rest_api.default[local.api_gateway.name].id
-  deployment_id         = aws_api_gateway_deployment.default.*.id[0]
+  deployment_id         = aws_api_gateway_deployment.default[local.api_gateway].id
   stage_name            = each.value["stage_name"]
   cache_cluster_enabled = each.value["cache_cluster_enabled"]
   cache_cluster_size    = each.value["cache_cluster_size"]
-  client_certificate_id = each.value["client_certificate_id"] != null ? each.value["client_certificate_id"] : (local.api_gateway.client_cert_enabled ? aws_api_gateway_client_certificate.default.*.id[0] : "")
+  client_certificate_id = each.value["client_certificate_id"] != null ? each.value["client_certificate_id"] : (local.api_gateway.client_cert_enabled ? aws_api_gateway_client_certificate.default[local.api_gateway].id : "")
   description           = each.value["stage_description"]
   documentation_version = each.value["documentation_version"]
   variables             = each.value["stage_variables"]
