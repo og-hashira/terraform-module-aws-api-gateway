@@ -98,7 +98,6 @@ Here are some examples of how you can use this module in your inventory structur
       {
         resource_path = "getBitlockerKey"
         api_method = {
-          http_method     = "GET"
           authorizer_name = "pingFedAuth"
 
           integration = {
@@ -163,7 +162,6 @@ Here are some examples of how you can use this module in your inventory structur
       {
         resource_path = "getBitlockerKey"
         api_method = {
-          http_method     = "GET"
           authorizer_name = "pingFedAuth"
 
           integration = {
@@ -185,27 +183,10 @@ Here are some examples of how you can use this module in your inventory structur
     description = "Lambda security group for bitlocker recovery"
     vpc_id      = module.aws_values.vpc.id
 
-    ingress_cidr_blocks = ["0.0.0.0/0"]
-    ingress_rules       = ["https-443-tcp"]
+    egress_cidr_blocks = ["0.0.0.0/0"]
+    egress_rules = ["https-443-tcp", "dns-tcp", "dns-udp", "ldaps-tcp"]
 
     tags = var.tags
-
-    egress_with_cidr_blocks = [
-      {
-        from_port   = 636
-        to_port     = 636
-        protocol    = 6
-        description = "LDAPS"
-        cidr_blocks = "0.0.0.0/0"
-      },
-      {
-        from_port   = 443
-        to_port     = 443
-        protocol    = 6
-        description = "HTTPS"
-        cidr_blocks = "0.0.0.0/0"
-      },
-    ]
   }
 
   #############################################
