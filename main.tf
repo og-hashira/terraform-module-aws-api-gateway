@@ -211,7 +211,7 @@ resource aws_api_gateway_stage default {
 resource "aws_wafregional_web_acl_association" "association" {
   for_each = { for stage in local.api_gateway_stages : stage.stage_name => stage }
   
-  resource_arn = aws_api_gateway_stage.default[each.value["stage_name"]].id
+  resource_arn = aws_api_gateway_stage.default[each.key].arn
   web_acl_id   = each.value["waf_id"]
 }
 
