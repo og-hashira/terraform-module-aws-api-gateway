@@ -361,6 +361,7 @@ Note:  If you choose to provide the optional objects below, you will have to ref
 | endpoint_configuration vpc_endpoint_ids | A list of VPC Endpoint Ids. | `list(string)` | no | `null` |
 | minimum_compression_size | Minimum response size to compress for the REST API. Integer between -1 and 10485760 (10MB). Setting a value greater than -1 will enable compression, -1 disables compression (default). | `number` | no | `null` |
 | custom_domain | The custom domain to associate to this REST API. | `string` | no | `null` |
+| waf_id | The WAF to associate to this REST API. | `string` | no | `null` |
 | acm_cert_arn | The AWS ACM Certificate arn to associate to this REST API custom domain. | `string` | no | `null` |
 | default_deployment_name | Name of the deployment. | `string` | yes | `null` |
 | default_deployment_description | The description of the deployment. | `string` | no | Managed by the P&G AWS API Gateway Terraform Module https://github.com/procter-gamble/terraform-module-aws-api-gateway.git |

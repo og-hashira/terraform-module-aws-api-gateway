@@ -1,9 +1,3 @@
-variable cors_origin_domain {
-  type    = string
-  description = "The domain of the site that is calling this api.  e.g. https://bitlocker.pgcloud.com"
-  default = ""
-}
-
 variable tags {
   type        = map(string)
   default     = {}
@@ -107,6 +101,12 @@ variable api_gateway {
   validation {
     condition     = var.api_gateway != null ? can(tomap(lookup(var.api_gateway, "default_deployment_variables", null))) : true
     error_message = "Optional attribute 'default_deployment_variables' of 'api_gateway' must be an object map."
+  }
+
+  // waf_id
+  validation {
+    condition     = can(tostring(lookup(var.api_gateway, "waf_id", "")))
+    error_message = "Optional attribute 'waf_id' of 'api_gateway' must be a string if specified."
   }
 
   // client_cert_enabled
@@ -1346,4 +1346,10 @@ variable api_gateway_methods {
     true)
     error_message = "Optional attribute 'method.options_method.response.response_parameters' of 'api_gateway_methods' must be a string with length > 1."
   }
+}
+
+variable cors_origin_domain {
+  type    = string
+  description = "The domain of the site that is calling this api.  e.g. https://bitlocker.pgcloud.com"
+  default = ""
 }
