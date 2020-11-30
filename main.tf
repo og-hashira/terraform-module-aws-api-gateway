@@ -209,9 +209,9 @@ resource aws_api_gateway_stage default {
 # Resource    : Api Gateway WAF Association
 # Description : Terraform resource to associate a WAF to the API Gateway.
 resource "aws_wafregional_web_acl_association" "association" {
-  for_each = var.api_gateway != null ? {for gw in [local.api_gateway]: gw.name => gw} : {}
+  for_each = { for stage in local.api_gateway_stages : stage.stage_name => stage }
   
-  resource_arn = aws_api_gateway_rest_api.default[local.api_gateway.name].id
+  resource_arn = aws_api_gateway_stage.default[each.value["stage_name"]].id
   web_acl_id   = each.value["waf_id"]
 }
 

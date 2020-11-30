@@ -103,12 +103,6 @@ variable api_gateway {
     error_message = "Optional attribute 'default_deployment_variables' of 'api_gateway' must be an object map."
   }
 
-  // waf_id
-  validation {
-    condition     = can(tostring(lookup(var.api_gateway, "waf_id", "")))
-    error_message = "Optional attribute 'waf_id' of 'api_gateway' must be a string if specified."
-  }
-
   // client_cert_enabled
   validation {
     condition     = can(tobool(lookup(var.api_gateway, "client_cert_enabled", false)))
@@ -198,6 +192,7 @@ variable api_gateway_stage_default {
     stage_description     = "Managed by the P&G AWS API Gateway Terraform Module https://github.com/procter-gamble/terraform-module-aws-api-gateway.git"
     stage_variables       = null
     xray_tracing_enabled  = false
+    waf_id                = null
   }
 }
 
@@ -268,6 +263,12 @@ variable api_gateway_stages {
   validation {
     condition     = var.api_gateway_stages != [] ? ! can(index([for stage in var.api_gateway_stages : can(lookup(stage, "xray_tracing_enabled")) ? can(tobool(lookup(stage, "xray_tracing_enabled"))) : true], false)) : true
     error_message = "Optional attribute 'xray_tracing_enabled' of 'api_gateway_stages' must be 'true' or 'false'."
+  }
+
+  // waf_id
+  validation {
+    condition     = var.api_gateway_stages != [] ? ! can(index([for stage in var.api_gateway_stages : length(lookup(stage, "waf_id")) > 1], false)) : true
+    error_message = "Optional attribute 'waf_id' of 'api_gateway_stages' must be a string if specified with length > 1."
   }
 
   // TODO: access_log_settings
