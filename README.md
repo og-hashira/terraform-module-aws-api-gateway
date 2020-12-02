@@ -441,7 +441,7 @@ Note:  If you choose to provide the optional objects below, you will have to ref
       {
         resource_path = "method1"
         api_method = {
-          http_method          = "POST"
+          http_method          = "GET"
           api_key_required     = false
           request_models       = null
           request_validator_id = null
