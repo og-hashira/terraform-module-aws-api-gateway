@@ -413,38 +413,22 @@ variable vpc_links {
   }
 }
 
-variable api_gateway_responses_default_options {
+variable api_gateway_responses_default {
   type    = any
   default = [ 
     {
       response_type = "DEFAULT_4XX"
       response_parameters = {}
       status_code   = null
-      response_templates = {
-        "application/json" = "{\"message\":$context.error.messageString}"
-      }
+      response_templates = {}
     },
     {
       response_type = "DEFAULT_5XX"
       response_parameters = {}
       status_code   = null
-      response_templates = {
-        "application/json" = "{\"message\":$context.error.messageString}"
-      }
+      response_templates = {}
     },
   ]
-}
-
-variable api_gateway_responses_default {
-  type    = any
-  default = {
-    response_type = "DEFAULT_4XX"
-    response_parameters = {}
-    status_code   = null
-    response_templates = {
-      "application/json" = "{\"message\":$context.error.messageString}"
-    }
-  }
 }
 
 variable api_gateway_responses {

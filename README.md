@@ -157,21 +157,6 @@ Here are some examples of how you can use this module in your inventory structur
       }
     ]
 
-    api_gateway_responses = [ 
-      {
-        response_type = "DEFAULT_4XX"
-        response_parameters = {"gatewayresponse.header.Access-Control-Allow-Headers"  = "'helloworld.com'"}
-        status_code   = 402
-        response_templates = {
-          "application/json" = "{ \"statusCode\": 400 }"
-        }
-      },
-      {
-        response_type = "UNAUTHORIZED"
-        response_parameters = {"gatewayresponse.header.Access-Control-Allow-Headers"  = "'helloworld2.com'"}
-      }
-    ]
-
     // look for "api_gateway_methods complete example" below for complete data structure
     api_gateway_methods = [
       {
@@ -353,7 +338,7 @@ Note:  If you choose to provide the optional objects below, you will have to ref
 | vpc_links | AWS API Gateway VPC Links | `set(object)` | no | `[]` |
 | authorizer_definitions | AWS API Gateway Authorizers | `set(object)` | no | `[]` |
 | api_gateway_methods | AWS API Gateway Methods | `set(object)` | no | `[]` |
-
+| api_gateway_responses | AWS API Gateway Gateway Responses | `set(object)` | no | `[]` |
 ## Outputs
 
 | Name | Description |
@@ -433,6 +418,33 @@ Note:  If you choose to provide the optional objects below, you will have to ref
 | authorizer_type | The type of the authorizer. Possible values are TOKEN for a Lambda function using a single authorization token submitted in a custom header, REQUEST for a Lambda function using incoming request parameters, or COGNITO_USER_POOLS for using an Amazon Cognito user pool. Defaults to TOKEN. | `string` | no | "TOKEN" |
 | authorizer_credentials | The credentials required for the authorizer. To specify an IAM Role for API Gateway to assume, use the IAM Role ARN. | `string` | no | `null` |
 | provider_arns | Required for type COGNITO_USER_POOLS) A list of the Amazon Cognito user pool ARNs. Each element is of this format: arn:aws:cognito-idp:{region}:{account_id}:userpool/{user_pool_id}. | `set(string)` | no | `null` |
+
+## Variable: api_gateway_responses most basic use is not defining it. This will initialize DEFAULT_4XX and DEFAULT_5XX to work with CORS headers. 
+
+## Variable: api_gateway_responses complete example with everything you can specify (with defaults specified). Provided values will override all defaults.
+````hcl
+    api_gateway_responses = [ 
+      {
+        response_type = "UNAUTHORIZED"
+        response_parameters = {
+          "gatewayresponse.header.Access-Control-Allow-Headers"  = "'${var.domain}'"
+        }
+        status_code   = 402
+        response_templates = {
+          "application/json" = "{ \"statusCode\": 400 }"
+        }
+      },
+      ... another gateway response 
+    ]
+````
+
+### Variable: api_gateway_responses
+| Name | Description | Type | Required  | Default|
+|------|-------------|------|---------|:--------:|
+| response_type | The name of the response type. | `string` | yes | `null` |
+| response_parameters | List of response parameters. | `set(string)` | no | `{}` |
+| status_code | Value for the status code. | `number` | no | `null` |
+| response_templates | A map of the integration's response templates. | `object` | no | `{}` |
 
 ## Variable: api_gateway_methods most basic example (the defaults will fill out the other required values, including the options method settings.  See below to override any of them.)
 ````hcl

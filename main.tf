@@ -44,6 +44,10 @@ locals {
     "gatewayresponse.header.Access-Control-Allow-Headers"  = "'${var.cors_origin_domain}'"
     "gatewayresponse.header.Access-Control-Allow-Credentials" = "'true'"
   }
+
+  response_templates = {
+    "application/json" = "{\"message\":$context.error.messageString}"
+  }
   
   options_integration_response_default = var.cors_origin_domain != "" ? merge(var.options_integration_response_default, {response_parameters = local.response_parameters}) : var.options_integration_response_default
 
@@ -67,14 +71,14 @@ locals {
   )]
 
   // api_gateway_methods
-  api_gateway_responses = [for api_gateway_response in merge({ for api_gateway_response in var.api_gateway_responses_default_options : "${api_gateway_response.response_type}" => api_gateway_response }, { for api_gateway_response in var.api_gateway_responses : "${api_gateway_response.response_type}" => api_gateway_response }) :
+  api_gateway_responses = [for api_gateway_response in merge({ for api_gateway_response in var.api_gateway_responses_default : "${api_gateway_response.response_type}" => api_gateway_response }, { for api_gateway_response in var.api_gateway_responses : "${api_gateway_response.response_type}" => api_gateway_response }) :
     merge(
       api_gateway_response,
       {
         response_type = api_gateway_response.response_type
         response_parameters = try(merge(local.gateway_response_parameters, api_gateway_response.response_parameters), local.gateway_response_parameters)
-        status_code = try(api_gateway_response.status_code, var.api_gateway_responses_default.status_code)
-        response_templates = try(api_gateway_response.response_templates, var.api_gateway_responses_default.response_templates)
+        status_code = try(api_gateway_response.status_code, null)
+        response_templates = try(merge(local.response_templates, api_gateway_response.response_templates), local.response_templates)
       }
     )
   ]
