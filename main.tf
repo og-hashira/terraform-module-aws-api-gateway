@@ -28,6 +28,9 @@ locals {
   // vpc_links
   vpc_links = var.vpc_links != null ? [for vpc_link in var.vpc_links : merge(var.vpc_link_default, vpc_link)] : null
 
+  // api_gateway_responses
+  api_gateway_responses = concat(var.api_gateway_responses_default, var.api_gateway_responses)
+
   // authorizer_definitions
   authorizer_definitions = var.authorizer_definitions != null ? [for auth in var.authorizer_definitions : merge(var.authorizer_definition_default, auth)] : null
 
@@ -37,6 +40,12 @@ locals {
     "method.response.header.Access-Control-Allow-Origin"      = "'${var.cors_origin_domain}'"
     "method.response.header.Access-Control-Allow-Headers"     = "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Amz-User-Agent'"
     "method.response.header.Access-Control-Allow-Methods"     = "'OPTIONS,GET,POST'"
+  }
+  
+  gateway_response_parameters = {
+    "gatewayresponse.header.Access-Control-Allow-Origin"  = "'${var.cors_origin_domain}'"
+    "gatewayresponse.header.Access-Control-Allow-Headers"  = "'${var.cors_origin_domain}'"
+    "gatewayresponse.header.Access-Control-Allow-Credentials" = "'true'"
   }
   
   options_integration_response_default = var.cors_origin_domain != "" ? merge(var.options_integration_response_default, {response_parameters = local.response_parameters}) : var.options_integration_response_default
@@ -59,6 +68,18 @@ locals {
         try({ response = merge(var.options_response_default, method.options_method.response) }, { response = var.options_response_default }),
       ) },
   )]
+
+  // api_gateway_responses_final
+  api_gateway_responses_final = [for method in local.api_gateway_responses :
+    merge(method,
+      {
+        response_type = method.response_type
+        response_parameters = merge(method.response_parameters, local.gateway_response_parameters)
+        status_code = method.status_code
+        response_templates = method.response_templates
+      }
+    )
+  ]
 
   ###########################
   ## Resource path parsing ##
@@ -478,24 +499,13 @@ resource aws_api_gateway_integration_response options_integration_response {
   ]
 }
 
-resource "aws_api_gateway_gateway_response" "cors4" {
+resource "aws_api_gateway_gateway_response" "cors" {
+  for_each = { for response in local.api_gateway_responses_final : response.response_type => response }
+
   rest_api_id         = aws_api_gateway_rest_api.default[local.api_gateway.name].id
-  response_type       = "DEFAULT_4XX"
+  response_type       = each.value["response_type"]
 
-  response_parameters = {
-    "gatewayresponse.header.Access-Control-Allow-Origin"  = "'${var.cors_origin_domain}'"
-    "gatewayresponse.header.Access-Control-Allow-Headers"  = "'${var.cors_origin_domain}'"
-    "gatewayresponse.header.Access-Control-Allow-Credentials" = "'true'"
-  }
-}
-
-resource "aws_api_gateway_gateway_response" "cors5" {
-  rest_api_id         = aws_api_gateway_rest_api.default[local.api_gateway.name].id
-  response_type       = "DEFAULT_5XX"
-
-  response_parameters = {
-    "gatewayresponse.header.Access-Control-Allow-Origin"  = "'${var.cors_origin_domain}'"
-    "gatewayresponse.header.Access-Control-Allow-Headers"  = "'${var.cors_origin_domain}'"
-    "gatewayresponse.header.Access-Control-Allow-Credentials" = "'true'"
-  }
+  response_parameters = each.value["response_parameters"]
+  status_code = each.value["status_code"]
+  response_templates = each.value["response_templates"]
 }

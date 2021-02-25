@@ -413,6 +413,49 @@ variable vpc_links {
   }
 }
 
+variable api_gateway_responses_default {
+  type    = any
+  default = [ 
+    {
+      response_type = "DEFAULT_4XX"
+      response_parameters = {}
+      status_code   = null
+      response_templates = null
+    },
+    {
+      response_type = "DEFAULT_5XX"
+      response_parameters = {}
+      status_code   = null
+      response_templates = null
+    },
+  ]
+}
+
+variable api_gateway_responses {
+  type = any
+  default = []
+  // response_type
+  validation {
+    condition     = var.api_gateway_responses != [] ? ! can(index([for api_gateway_response in var.api_gateway_responses : can(lookup(api_gateway_response, "response_type")) ? length(lookup(api_gateway_response, "response_type")) > 1 : false], false)) : true
+    error_message = "If the set of 'api_gateway_responses' is provided, each value must contain an attribute 'response_type' with length > 1."
+  }
+  // response_parameters
+  validation {
+    condition     = var.api_gateway_responses != [] ? ! can(index([for api_gateway_response in var.api_gateway_responses : length(lookup(api_gateway_response, "api_gateway_responses")) > 1], false)) : true
+    error_message = "Optional attribute 'response_parameters' of 'api_gateway_responses' must be a map if specified with length > 1."
+  }
+  // response_parameters
+  validation {
+    condition     = var.api_gateway_responses != [] ? ! can(index([for api_gateway_response in var.api_gateway_responses : length(lookup(api_gateway_response, "status_code")) > 1], false)) : true
+    error_message = "Optional attribute 'status_code' of 'api_gateway_responses' must be a string if specified with length > 1."
+  }
+  // response_parameters
+  validation {
+    condition     = var.api_gateway_responses != [] ? ! can(index([for api_gateway_response in var.api_gateway_responses : length(lookup(api_gateway_response, "response_template")) > 1], false)) : true
+    error_message = "Optional attribute 'response_template' of 'api_gateway_responses' must be a map if specified with length > 1."
+  }
+}
+
 variable authorizer_definition_default {
   description = "AWS API Gateway authorizer default."
   type        = any
