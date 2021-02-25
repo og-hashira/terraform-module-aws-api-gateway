@@ -28,9 +28,6 @@ locals {
   // vpc_links
   vpc_links = var.vpc_links != null ? [for vpc_link in var.vpc_links : merge(var.vpc_link_default, vpc_link)] : null
 
-  // api_gateway_responses
-  api_gateway_responses = concat(var.api_gateway_responses_default, var.api_gateway_responses)
-
   // authorizer_definitions
   authorizer_definitions = var.authorizer_definitions != null ? [for auth in var.authorizer_definitions : merge(var.authorizer_definition_default, auth)] : null
 
@@ -69,14 +66,15 @@ locals {
       ) },
   )]
 
-  // api_gateway_responses_final
-  api_gateway_responses_final = [for method in local.api_gateway_responses :
-    merge(method,
+  // api_gateway_methods
+  api_gateway_responses = [for api_gateway_response in merge({ for api_gateway_response in var.api_gateway_responses_default_options : "${api_gateway_response.response_type}" => api_gateway_response }, { for api_gateway_response in var.api_gateway_responses : "${api_gateway_response.response_type}" => api_gateway_response }) :
+    merge(
+      api_gateway_response,
       {
-        response_type = method.response_type
-        response_parameters = merge(method.response_parameters, local.gateway_response_parameters)
-        status_code = method.status_code
-        response_templates = method.response_templates
+        response_type = api_gateway_response.response_type
+        response_parameters = try(merge(local.gateway_response_parameters, api_gateway_response.response_parameters), local.gateway_response_parameters)
+        status_code = try(api_gateway_response.status_code, var.api_gateway_responses_default.status_code)
+        response_templates = try(api_gateway_response.response_templates, var.api_gateway_responses_default.response_templates)
       }
     )
   ]
@@ -500,7 +498,7 @@ resource aws_api_gateway_integration_response options_integration_response {
 }
 
 resource "aws_api_gateway_gateway_response" "cors" {
-  for_each = { for response in local.api_gateway_responses_final : response.response_type => response }
+  for_each = { for response in local.api_gateway_responses : response.response_type => response }
 
   rest_api_id         = aws_api_gateway_rest_api.default[local.api_gateway.name].id
   response_type       = each.value["response_type"]

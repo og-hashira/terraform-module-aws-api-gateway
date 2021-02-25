@@ -413,22 +413,38 @@ variable vpc_links {
   }
 }
 
-variable api_gateway_responses_default {
+variable api_gateway_responses_default_options {
   type    = any
   default = [ 
     {
       response_type = "DEFAULT_4XX"
       response_parameters = {}
       status_code   = null
-      response_templates = null
+      response_templates = {
+        "application/json" = "{\"message\":$context.error.messageString}"
+      }
     },
     {
       response_type = "DEFAULT_5XX"
       response_parameters = {}
       status_code   = null
-      response_templates = null
+      response_templates = {
+        "application/json" = "{\"message\":$context.error.messageString}"
+      }
     },
   ]
+}
+
+variable api_gateway_responses_default {
+  type    = any
+  default = {
+    response_type = "DEFAULT_4XX"
+    response_parameters = {}
+    status_code   = null
+    response_templates = {
+      "application/json" = "{\"message\":$context.error.messageString}"
+    }
+  }
 }
 
 variable api_gateway_responses {
@@ -444,12 +460,12 @@ variable api_gateway_responses {
     condition     = var.api_gateway_responses != [] ? ! can(index([for api_gateway_response in var.api_gateway_responses : length(lookup(api_gateway_response, "api_gateway_responses")) > 1], false)) : true
     error_message = "Optional attribute 'response_parameters' of 'api_gateway_responses' must be a map if specified with length > 1."
   }
-  // response_parameters
+  // status_code
   validation {
     condition     = var.api_gateway_responses != [] ? ! can(index([for api_gateway_response in var.api_gateway_responses : length(lookup(api_gateway_response, "status_code")) > 1], false)) : true
     error_message = "Optional attribute 'status_code' of 'api_gateway_responses' must be a string if specified with length > 1."
   }
-  // response_parameters
+  // response_template
   validation {
     condition     = var.api_gateway_responses != [] ? ! can(index([for api_gateway_response in var.api_gateway_responses : length(lookup(api_gateway_response, "response_template")) > 1], false)) : true
     error_message = "Optional attribute 'response_template' of 'api_gateway_responses' must be a map if specified with length > 1."

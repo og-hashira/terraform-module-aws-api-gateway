@@ -111,7 +111,7 @@ Here are some examples of how you can use this module in your inventory structur
   }
 ```
 
-### Example creating the app lambda from source, a lambda authorizer from source, a custom certificate, a custom domain, and api gateway
+### Example creating the app lambda from source, a lambda authorizer from source, custom gateway responses, a custom certificate, a custom domain, and api gateway
 ```hcl
   ##############################
   # Custom Domain Certificate ##
@@ -154,6 +154,21 @@ Here are some examples of how you can use this module in your inventory structur
       {
         authorizer_name = "pingFedAuth"
         authorizer_uri  = module.ping_authorizer.this_lambda_function_invoke_arn
+      }
+    ]
+
+    api_gateway_responses = [ 
+      {
+        response_type = "DEFAULT_4XX"
+        response_parameters = {"gatewayresponse.header.Access-Control-Allow-Headers"  = "'helloworld.com'"}
+        status_code   = 402
+        response_templates = {
+          "application/json" = "{ \"statusCode\": 400 }"
+        }
+      },
+      {
+        response_type = "UNAUTHORIZED"
+        response_parameters = {"gatewayresponse.header.Access-Control-Allow-Headers"  = "'helloworld2.com'"}
       }
     ]
 
