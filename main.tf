@@ -39,6 +39,16 @@ locals {
     "method.response.header.Access-Control-Allow-Methods"     = "'OPTIONS,GET,POST'"
   }
   
+  gateway_response_parameters = {
+    "gatewayresponse.header.Access-Control-Allow-Origin"  = "'${var.cors_origin_domain}'"
+    "gatewayresponse.header.Access-Control-Allow-Headers"  = "'${var.cors_origin_domain}'"
+    "gatewayresponse.header.Access-Control-Allow-Credentials" = "'true'"
+  }
+
+  response_templates = {
+    "application/json" = "{\"message\":$context.error.messageString}"
+  }
+  
   options_integration_response_default = var.cors_origin_domain != "" ? merge(var.options_integration_response_default, {response_parameters = local.response_parameters}) : var.options_integration_response_default
 
   // api_gateway_methods
@@ -59,6 +69,19 @@ locals {
         try({ response = merge(var.options_response_default, method.options_method.response) }, { response = var.options_response_default }),
       ) },
   )]
+
+  // api_gateway_methods
+  api_gateway_responses = [for api_gateway_response in merge({ for api_gateway_response in var.api_gateway_responses_default : "${api_gateway_response.response_type}" => api_gateway_response }, { for api_gateway_response in var.api_gateway_responses : "${api_gateway_response.response_type}" => api_gateway_response }) :
+    merge(
+      api_gateway_response,
+      {
+        response_type = api_gateway_response.response_type
+        response_parameters = try(merge(local.gateway_response_parameters, api_gateway_response.response_parameters), local.gateway_response_parameters)
+        status_code = try(api_gateway_response.status_code, null)
+        response_templates = try(merge(local.response_templates, api_gateway_response.response_templates), local.response_templates)
+      }
+    )
+  ]
 
   ###########################
   ## Resource path parsing ##
@@ -476,4 +499,15 @@ resource aws_api_gateway_integration_response options_integration_response {
   depends_on = [
     aws_api_gateway_integration.options_integration,
   ]
+}
+
+resource "aws_api_gateway_gateway_response" "cors" {
+  for_each = { for response in local.api_gateway_responses : response.response_type => response }
+
+  rest_api_id         = aws_api_gateway_rest_api.default[local.api_gateway.name].id
+  response_type       = each.value["response_type"]
+
+  response_parameters = each.value["response_parameters"]
+  status_code = each.value["status_code"]
+  response_templates = each.value["response_templates"]
 }
