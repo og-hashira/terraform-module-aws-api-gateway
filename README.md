@@ -209,7 +209,7 @@ Here are some examples of how you can use this module in your inventory structur
     source_path = "${path.module}/../api_backend/python_lambdas"
 
     attach_network_policy = true
-    vpc_subnet_ids        = ["subnet-0fc6bcf1909125b68"]
+    vpc_subnet_ids        = ["subnet-id"]
     vpc_security_group_ids = [module.lambda_security_group.this_security_group_id]
 
     kms_key_arn = module.kms.arn # From github.com/procter-gamble/terraform-module-kms
