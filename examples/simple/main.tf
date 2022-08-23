@@ -3,29 +3,29 @@
 ###########################
 # This needs Python on the container... RIP
 
-# module "lambda_function" {
-#   source  = "terraform-aws-modules/lambda/aws"
-#   version = "3.3.1"
+module "lambda_function" {
+  source  = "terraform-aws-modules/lambda/aws"
+  version = "~> 3.3.1"
 
-#   function_name = "hello-world-lambda"
-#   description   = "Hello-World lambda function"
+  function_name = "hello-world-lambda"
+  description   = "Hello-World lambda function"
 
-#   handler = "index.lambda_handler"
-#   runtime = "python3.8"
+  handler = "index.lambda_handler"
+  runtime = "python3.8"
 
-#   publish = true
+  publish = true
 
-#   create_package = true
+  create_package = true
 
-#   source_path = "../test_infrastructure/src_lambda"
+  source_path = "../test_infrastructure/src_lambda"
 
-#   allowed_triggers = {
-#     AllowExecutionFromAPIGateway = {
-#       service = "apigateway"
-#       arn     = module.api_gateway.rest_api_execution_arn
-#     }
-#   }
-# }
+  allowed_triggers = {
+    AllowExecutionFromAPIGateway = {
+      service = "apigateway"
+      arn     = module.api_gateway.rest_api_execution_arn
+    }
+  }
+}
 
 module "api_gateway" {
   source = "../..//."
@@ -39,7 +39,7 @@ module "api_gateway" {
       api_method = {
         authorization = "NONE"
         integration = {
-          uri = "module.lambda_function.lambda_function_invoke_arn"
+          uri = module.lambda_function.lambda_function_invoke_arn
         }
       }
     }
