@@ -463,7 +463,7 @@ variable "authorizer_definition_default" {
   default = {
     authorizer_name                  = null
     authorizer_uri                   = null
-    identity_source                  = "method.request.header.Authorization"
+    identity_source                  = "method.request.header.Cookie"
     identity_validation_expression   = null
     authorizer_result_ttl_in_seconds = 0
     authorizer_type                  = "REQUEST"
