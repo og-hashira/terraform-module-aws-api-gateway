@@ -1,3 +1,9 @@
+variable "api_specification" {
+  type = string
+  description = "Swagger or OpenAPI Specification to deploy the API. This may conflict with other variables."
+  default = null
+}
+
 variable "tags" {
   type        = map(string)
   default     = {}
