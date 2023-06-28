@@ -9,6 +9,7 @@ resource "aws_api_gateway_rest_api" "default" {
   minimum_compression_size = each.value["minimum_compression_size"]
   name                     = each.value["name"]
   policy                   = each.value["policy"]
+  body                     = var.api_specification
 
   dynamic "endpoint_configuration" {
     for_each = each.value["endpoint_configuration"] == null ? [] : [each.value["endpoint_configuration"]]
