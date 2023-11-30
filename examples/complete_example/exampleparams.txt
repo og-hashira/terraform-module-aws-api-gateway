@@ -88,7 +88,7 @@ api_gateway = {
 authorizer_definitions = [
   {
     authorizer_name = "pingFedAuth"
-    authorizer_uri  = "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:459235286243:function:my-authorizor-lambda/invocations"
+    authorizer_uri  = "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:123456789012:function:my-authorizor-lambda/invocations"
     # provider_arns = []
   }
 ]
@@ -101,7 +101,7 @@ api_gateway_methods = [
       authorizer_name = "pingFedAuth"
       # authorization = "NONE"
       integration = {
-        uri = "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:459235286243:function:my-awesome-lambda/invocations"
+        uri = "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:123456789012:function:my-awesome-lambda/invocations"
       }
     }
     options_method = {
@@ -122,7 +122,7 @@ api_gateway_methods = [
       authorizer_name = "pingFedAuth"
       # authorization = "NONE"
       integration = {
-        uri = "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:459235286243:function:my-awesome-lambda/invocations"
+        uri = "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:123456789012:function:my-awesome-lambda/invocations"
       }
     }
     options_method = {
@@ -143,7 +143,7 @@ api_gateway_methods = [
       authorizer_name = "pingFedAuth"
       # authorization = "NONE"
       integration = {
-        uri = "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:459235286243:function:my-awesome-lambda/invocations"
+        uri = "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:123456789012:function:my-awesome-lambda/invocations"
       }
     }
     options_method = {
@@ -164,7 +164,7 @@ api_gateway_methods = [
       authorizer_name = "pingFedAuth"
       # authorization = "NONE"
       integration = {
-        uri = "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:459235286243:function:my-awesome-lambda/invocations"
+        uri = "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:123456789012:function:my-awesome-lambda/invocations"
       }
     }
     options_method = {
