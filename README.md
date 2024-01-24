@@ -9,7 +9,7 @@
 <p align="center">
 
 <a href="https://www.terraform.io">
-  <img src="https://img.shields.io/badge/Terraform-v1.1.0-green" alt="Terraform">
+  <img src="https://img.shields.io/badge/Terraform-v1.5.0-green" alt="Terraform">
 </a>
 
 </p>
@@ -18,8 +18,8 @@
 
 This module has the following dependencies:
 
-- [Terraform 1.1.0](https://learn.hashicorp.com/terraform/getting-started/install.html)
-- Hashicorp AWS Provider ~> 4.0
+- [Terraform 1.5.0](https://learn.hashicorp.com/terraform/getting-started/install.html)
+- Hashicorp AWS Provider ~> 5.0
 
 ## Limitations/TODOs
 
@@ -112,6 +112,63 @@ Here are some examples of how you can use this module in your inventory structur
     ]
 
     depends_on = [module.acm_cert]
+  }
+```
+
+### Basic Example Featuring Lambda Authorizers, a Custom Domain, and WebACL Attachment to the API Stage.
+```hcl
+  ###################
+  # API Gateway
+  ###################
+  module "api_gateway" {
+    source  = "spacelift.io/mondelez-ctiso/terraform-aws-api-gateway-v1/aws"
+    version = "3.1.0"
+
+    providers = { aws = aws }
+
+    tags = var.tags
+
+    cors_origin_domain = var.cors_origin_domain
+
+    api_gateway = {
+      name                                = "my-api-gateway-name"
+      hosted_zone_id                      = data.aws_ssm_parameter.hosted_zone.value
+      custom_domain                       = "api.${var.domain}"
+      acm_cert_arn                        = module.acm_cert.arn
+      base_path_mapping_active_stage_name = var.spacelift_stack_branch
+    }
+
+    api_gateway_stages = [
+      {
+        stage_name        = var.spacelift_stack_branch
+        stage_description = "The stage defined for ${var.spacelift_stack_branch}, tied to the default deployment."
+        web_acl_enabled   = true
+        web_acl_arn       = module.waf.web_acl_arn
+      },
+    ]
+
+    authorizer_definitions = [
+      {
+        authorizer_name = "pingFedAuth"
+        authorizer_uri  = module.ping_authorizer.this_lambda_function_invoke_arn
+      }
+    ]
+
+    // look for "api_gateway_methods complete example" below for complete data structure
+    api_gateway_methods = [
+      {
+        resource_path = "getSomethingGreat"
+        api_method = {
+          authorizer_name = "pingFedAuth"
+
+          integration = {
+            uri = module.app_lambda.this_lambda_function_invoke_arn
+          }
+        }
+      }
+    ]
+
+    depends_on = [module.acm_cert, module.waf]
   }
 ```
 
@@ -765,7 +822,7 @@ No modules.
 | <a name="input_api_gateway_options_default"></a> [api\_gateway\_options\_default](#input\_api\_gateway\_options\_default) | AWS API Gateway options default. | `any` | <pre>{<br>  "api_key_required": false,<br>  "authorization": "NONE",<br>  "authorization_scopes": null,<br>  "authorizer_id": null,<br>  "authorizer_name": null,<br>  "http_method": "OPTIONS",<br>  "integration": {},<br>  "integration_response": {},<br>  "request_models": null,<br>  "request_parameters": null,<br>  "request_validator_id": null,<br>  "response": {}<br>}</pre> | no |
 | <a name="input_api_gateway_responses"></a> [api\_gateway\_responses](#input\_api\_gateway\_responses) | n/a | `any` | `[]` | no |
 | <a name="input_api_gateway_responses_default"></a> [api\_gateway\_responses\_default](#input\_api\_gateway\_responses\_default) | n/a | `any` | <pre>[<br>  {<br>    "response_parameters": {},<br>    "response_templates": {},<br>    "response_type": "DEFAULT_4XX",<br>    "status_code": null<br>  },<br>  {<br>    "response_parameters": {},<br>    "response_templates": {},<br>    "response_type": "DEFAULT_5XX",<br>    "status_code": null<br>  }<br>]</pre> | no |
-| <a name="input_api_gateway_stage_default"></a> [api\_gateway\_stage\_default](#input\_api\_gateway\_stage\_default) | AWS API Gateway stage default. | `any` | <pre>{<br>  "access_log_settings": [],<br>  "cache_cluster_enabled": false,<br>  "cache_cluster_size": null,<br>  "client_certificate_id": null,<br>  "documentation_version": null,<br>  "stage_description": "Managed by terraform-aws-api-gateway-v1 module",<br>  "stage_name": null,<br>  "stage_variables": null,<br>  "web_acl_arn": null,<br>  "xray_tracing_enabled": false<br>}</pre> | no |
+| <a name="input_api_gateway_stage_default"></a> [api\_gateway\_stage\_default](#input\_api\_gateway\_stage\_default) | AWS API Gateway stage default. | `any` | <pre>{<br>  "access_log_settings": [],<br>  "cache_cluster_enabled": false,<br>  "cache_cluster_size": null,<br>  "client_certificate_id": null,<br>  "documentation_version": null,<br>  "stage_description": "Managed by terraform-aws-api-gateway-v1 module",<br>  "stage_name": null,<br>  "stage_variables": null,<br>  "web_acl_arn": null,<br>  "web_acl_enabled": false,<br>  "xray_tracing_enabled": false<br>}</pre> | no |
 | <a name="input_api_gateway_stages"></a> [api\_gateway\_stages](#input\_api\_gateway\_stages) | AWS API Gateway stage. | `any` | `[]` | no |
 | <a name="input_api_keys"></a> [api\_keys](#input\_api\_keys) | AWS API Gateway API Keys. | `any` | `[]` | no |
 | <a name="input_api_keys_default"></a> [api\_keys\_default](#input\_api\_keys\_default) | AWS API Gateway API Keys default | `any` | <pre>{<br>  "enabled": true,<br>  "key_description": "Managed by terraform-aws-api-gateway-v1 module",<br>  "key_name": null,<br>  "value": null<br>}</pre> | no |
