@@ -38,17 +38,24 @@ resource "aws_api_gateway_domain_name" "api_domain" {
 
   certificate_arn = each.value["acm_cert_arn"]
   domain_name     = each.value["custom_domain"]
+
+  dynamic "endpoint_configuration" {
+    for_each = each.value["endpoint_configuration"] == null ? [] : [each.value["endpoint_configuration"]]
+    content {
+      types = endpoint_configuration.value.types
+    }
+  }
 }
 
 # Resource    : Api Gateway Base Path Mapping
 # Description : Terraform resource to create Api Gateway base path mapping on AWS.
 resource "aws_api_gateway_base_path_mapping" "mapping" {
-  for_each = { for stage in local.api_gateway_stages : stage.stage_name => stage }
+  for_each = { for stage in local.api_gateway_stages : stage.stage_name == "main" ? "prod" : stage.stage_name => stage if local.api_gateway.custom_domain != null }
 
   api_id      = aws_api_gateway_rest_api.default[local.api_gateway.name].id
-  stage_name  = each.value["stage_name"]
+  stage_name  = each.key
   domain_name = local.api_gateway.custom_domain
-  base_path   = each.value["stage_name"]
+  base_path   = each.key
 
   depends_on = [aws_api_gateway_deployment.default, aws_api_gateway_stage.default]
 }
@@ -90,10 +97,44 @@ resource "aws_api_gateway_deployment" "default" {
   }
 }
 
+resource "aws_api_gateway_account" "this" {
+  count = local.any_api_method_with_settings ? 1 : 0
+
+  cloudwatch_role_arn = aws_iam_role.api_gw_cw_role[0].arn
+}
+
+data "aws_iam_policy_document" "assume_role_policy" {
+  statement {
+    effect  = "Allow"
+    actions = ["sts:AssumeRole"]
+
+    principals {
+      type        = "Service"
+      identifiers = ["apigateway.amazonaws.com"]
+    }
+  }
+}
+
+resource "aws_iam_role" "api_gw_cw_role" {
+  count = local.any_api_method_with_settings ? 1 : 0
+
+  name               = "APIGWCloudwatchrole"
+  assume_role_policy = data.aws_iam_policy_document.assume_role_policy.json
+}
+
+resource "aws_iam_role_policy_attachment" "api_gw_cw_role_policy_attachment" {
+  count = local.any_api_method_with_settings ? 1 : 0
+
+  role       = aws_iam_role.api_gw_cw_role[0].name
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonAPIGatewayPushToCloudWatchLogs"
+}
+
 # Resource    : Api Gateway Stage
 # Description : Terraform resource to create Api Gateway Stage on AWS
 resource "aws_api_gateway_stage" "default" {
-  for_each = { for stage in local.api_gateway_stages : stage.stage_name => stage }
+  depends_on = [aws_api_gateway_account.this[0]]
+
+  for_each = { for stage in local.api_gateway_stages : stage.stage_name == "main" ? "prod" : stage.stage_name => stage }
 
   rest_api_id           = aws_api_gateway_rest_api.default[local.api_gateway.name].id
   deployment_id         = aws_api_gateway_deployment.default[local.api_gateway.name].id
@@ -120,7 +161,7 @@ resource "aws_api_gateway_stage" "default" {
 # Resource    : Api Gateway WAF Association
 # Description : Terraform resource to associate a WAF to the API Gateway.
 resource "aws_wafv2_web_acl_association" "association" {
-  for_each     = { for stage in local.api_gateway_stages : stage.stage_name => stage if stage.web_acl_enabled }
+  for_each     = { for stage in local.api_gateway_stages : stage.stage_name == "main" ? "prod" : stage.stage_name => stage if stage.web_acl_enabled }
   resource_arn = aws_api_gateway_stage.default[each.key].arn
   web_acl_arn  = each.value["web_acl_arn"]
 }
@@ -250,6 +291,32 @@ resource "aws_api_gateway_method" "default" {
   request_models       = each.value["api_method"]["request_models"]
   request_validator_id = each.value["api_method"]["request_validator_id"]
   request_parameters   = each.value["api_method"]["request_parameters"]
+}
+
+# Resource    : AWS API Gateway method settings.
+# Description : Added settings
+resource "aws_api_gateway_method_settings" "method_settings" {
+  for_each = { for method in local.stage_api_methods : method.key => method if contains(keys(method["api_method"]), "settings") }
+
+  rest_api_id = aws_api_gateway_rest_api.default[local.api_gateway.name].id
+  stage_name  = aws_api_gateway_stage.default[each.value["stage_name"]].stage_name
+  method_path = "${each.value["resource_path"]}/${each.value["api_method"]["http_method"]}"
+
+  dynamic "settings" {
+    for_each = [each.value["api_method"]["settings"]]
+    content {
+      metrics_enabled                            = lookup(settings.value, "metrics_enabled", false)
+      logging_level                              = lookup(settings.value, "logging_level", "ERROR")
+      caching_enabled                            = lookup(settings.value, "caching_enabled", false)
+      cache_data_encrypted                       = lookup(settings.value, "cache_data_encrypted", true)
+      cache_ttl_in_seconds                       = lookup(settings.value, "cache_ttl_in_seconds", null)
+      data_trace_enabled                         = lookup(settings.value, "data_trace_enabled", false)
+      require_authorization_for_cache_control    = lookup(settings.value, "require_authorization_for_cache_control", false)
+      throttling_burst_limit                     = lookup(settings.value, "throttling_burst_limit", -1)
+      throttling_rate_limit                      = lookup(settings.value, "throttling_rate_limit", -1)
+      unauthorized_cache_control_header_strategy = lookup(settings.value, "unauthorized_cache_control_header_strategy", null)
+    }
+  }
 }
 
 # Resource    : Api Gateway Method Response

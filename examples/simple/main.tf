@@ -1,7 +1,6 @@
 ###########################
 # Supporting resources
-###########################
-# This needs Python on the container... RIP
+#######RIP####################
 
 module "lambda_function" {
   source  = "terraform-aws-modules/lambda/aws"
@@ -28,31 +27,47 @@ module "lambda_function" {
   layers = ["arn:aws:lambda:us-east-2:017000801446:layer:AWSLambdaPowertoolsPythonV2:46"]
 }
 
+resource "aws_cloudwatch_log_group" "api_gw_log_group" {
+  name              = "/aws/apigateway/simple-test-api-logs"
+  retention_in_days = 7
+}
+
 module "api_gateway" {
   source = "../..//."
 
   api_gateway = {
-    name                                = "simple-test-api-gateway"
-    custom_domain                       = "api-gateway-v1.test.cloud.mdlz.com"
-    hosted_zone_id                      = "test.cloud.mdlz.com"
-    description                         = "The test api-gateway"
-    minimum_compression_size            = 0
-    api_key_source                      = "HEADER"
-    type                                = ["EDGE"]
-    acm_cert_arn                        = ""
-    api_gateway_client_cert_enabled     = false
-    api_gateway_client_cert_description = ""
+    name                     = "simple-test-api-gateway"
+    description              = "The test api-gateway"
+    minimum_compression_size = 0
+    api_key_source           = "HEADER"
+    endpoint_configuration = {
+      types = ["REGIONAL"]
+    }
+    api_gateway_client_cert_enabled = false
   }
 
   api_gateway_stages = [
     {
-      stage_name        = "main"
-      stage_description = "The stage defined for main, tied to the default deployment."
+      stage_name        = "prod"
+      stage_description = "The stage defined for prod, tied to the default deployment."
+      access_log_settings = [{
+        destination_arn = aws_cloudwatch_log_group.api_gw_log_group.arn
+        format          = "{ \"requestId\":\"$context.requestId\", \"extendedRequestId\":\"$context.extendedRequestId\",\"ip\": \"$context.identity.sourceIp\", \"caller\":\"$context.identity.caller\", \"user\":\"$context.identity.user\", \"requestTime\":\"$context.requestTime\", \"httpMethod\":\"$context.httpMethod\", \"resourcePath\":\"$context.resourcePath\", \"status\":\"$context.status\", \"protocol\":\"$context.protocol\", \"responseLength\":\"$context.responseLength\" }"
+      }]
+    },
+    {
+      stage_name        = "staging"
+      stage_description = "The stage defined for staging"
+      access_log_settings = [{
+        destination_arn = aws_cloudwatch_log_group.api_gw_log_group.arn
+        format          = "{ \"requestId\":\"$context.requestId\", \"extendedRequestId\":\"$context.extendedRequestId\",\"ip\": \"$context.identity.sourceIp\", \"caller\":\"$context.identity.caller\", \"user\":\"$context.identity.user\", \"requestTime\":\"$context.requestTime\", \"httpMethod\":\"$context.httpMethod\", \"resourcePath\":\"$context.resourcePath\", \"status\":\"$context.status\", \"protocol\":\"$context.protocol\", \"responseLength\":\"$context.responseLength\" }"
+      }]
     }
   ]
   api_gateway_methods = [
     {
       resource_path = "myPath"
+
       api_method = {
         authorization = "NONE"
         integration = {
@@ -63,7 +78,11 @@ module "api_gateway" {
     },
     {
       resource_path = "myPath"
+
       api_method = {
+        # settings = {
+        #   metrics_enabled = true
+        # }
         authorization = "NONE"
         integration = {
           uri = module.lambda_function.lambda_function_invoke_arn
@@ -73,7 +92,11 @@ module "api_gateway" {
     },
     {
       resource_path = "mySecondPath"
+
       api_method = {
+        settings = {
+          metrics_enabled = true
+        }
         authorization = "NONE"
         integration = {
           uri = module.lambda_function.lambda_function_invoke_arn

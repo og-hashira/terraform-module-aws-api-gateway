@@ -64,7 +64,31 @@ locals {
       ) },
   )]
 
-  // api_gateway_methods
+  api_gateway_methods_for_method_settings_iteration = [for method in var.api_gateway_methods :
+    merge(method,
+      {
+        key = "${method.resource_path}-${coalesce(try(method.api_method.http_method, null), "ANY")}"
+      }
+  )]
+
+  any_api_method_with_settings = anytrue([
+    for method in var.api_gateway_methods :
+    contains(keys(method.api_method), "settings")
+  ])
+
+  # Create a list of maps combining each stage_name with each api_method
+  stage_api_methods = flatten([
+    for stage in local.api_gateway_stages : [
+      for method in local.api_gateway_methods_for_method_settings_iteration : {
+        key           = "${method.key}-${stage.stage_name}"
+        stage_name    = stage.stage_name
+        resource_path = method.resource_path
+        api_method    = method.api_method
+      }
+    ]
+  ])
+
+  // api_gateway_respones
   api_gateway_responses = [for api_gateway_response in merge({ for api_gateway_response in var.api_gateway_responses_default : api_gateway_response.response_type => api_gateway_response }, { for api_gateway_response in var.api_gateway_responses : api_gateway_response.response_type => api_gateway_response }) :
     merge(
       api_gateway_response,
@@ -80,7 +104,6 @@ locals {
   ###########################
   ## Resource path parsing ##
   ###########################
-
   paths = [for method in local.api_gateway_methods : method.resource_path]
 
   paths_as_segments = [for path in local.paths : split("/", path)]
