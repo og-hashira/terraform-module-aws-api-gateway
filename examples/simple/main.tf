@@ -1,6 +1,17 @@
 ###########################
-# Supporting resources
-#######RIP####################
+# Supporting resources  ###
+###########################
+data "aws_route53_zone" "this" {
+  name = "apigw-test.aws.mdlz.com"
+}
+
+module "acm" {
+  source  = "terraform-aws-modules/acm/aws"
+  version = "~> 4.0"
+
+  domain_name = "apigw-test.aws.mdlz.com"
+  zone_id     = data.aws_route53_zone.this.id
+}
 
 module "lambda_function" {
   source  = "terraform-aws-modules/lambda/aws"
@@ -44,6 +55,11 @@ module "api_gateway" {
       types = ["REGIONAL"]
     }
     api_gateway_client_cert_enabled = false
+    hosted_zone_id                      = data.aws_route53_zone.this.id
+    custom_domain                       = "apigw-test.aws.mdlz.com"
+    acm_cert_arn                        = module.acm.acm_certificate_arn
+    base_path_mapping_active_stage_name = "prod"
+    # default_deployment_name             = "prod"
   }
 
   api_gateway_stages = [

@@ -71,10 +71,17 @@ locals {
       }
   )]
 
+  # Test to see if any method has optional "settings" (access logs)
   any_api_method_with_settings = anytrue([
     for method in var.api_gateway_methods :
     contains(keys(method.api_method), "settings")
   ])
+
+  is_regional = (
+    local.api_gateway.endpoint_configuration != null &&
+    length(local.api_gateway.endpoint_configuration.types) == 1 &&
+    local.api_gateway.endpoint_configuration.types[0] == "REGIONAL"
+  )
 
   # Create a list of maps combining each stage_name with each api_method
   stage_api_methods = flatten([
