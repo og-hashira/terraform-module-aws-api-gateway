@@ -177,7 +177,7 @@ variable "api_gateway" {
       try(var.api_gateway.endpoint_configuration.types[0], "") == "PRIVATE" ?
       can([
         for vpc_endpoint_id in var.api_gateway.endpoint_configuration.vpc_endpoint_ids :
-        regex("^vpce-[a-z0-9]+$", vpc_endpoint_id)
+        regex("^vpc-[a-z0-9]+$", vpc_endpoint_id)
       ]) :
       length(try(var.api_gateway.endpoint_configuration.vpc_endpoint_ids, [])) == 0
     )
