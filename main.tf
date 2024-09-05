@@ -103,10 +103,16 @@ resource "aws_api_gateway_deployment" "default" {
   variables   = each.value["default_deployment_variables"]
 
   triggers = {
-    redeployment = sha1(jsonencode(aws_api_gateway_integration.default))
+    redeployment = sha1(jsonencode([
+      aws_api_gateway_integration.default,
+      aws_api_gateway_integration.options_integration,
+      aws_api_gateway_method.default,
+      aws_api_gateway_method.options_method,
+      aws_api_gateway_model.default
+      ]))
   }
 
-  depends_on = [aws_api_gateway_method.default, aws_api_gateway_integration.default]
+  depends_on = [aws_api_gateway_method.default, aws_api_gateway_integration.default, aws_api_gateway_model.default]
 
   lifecycle {
     create_before_destroy = true
